@@ -147,3 +147,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Support
 
 For support, please open an issue in the GitHub repository or contact the development team.
+
+## 📋 Changelog
+
+See [CHANGELOG.md](https://github.com/watercrawl/frontend/blob/main/CHANGELOG.md) for a list of notable changes and version history.
