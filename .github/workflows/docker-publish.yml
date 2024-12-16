@@ -37,4 +37,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/frontend:${{ env.tag }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/frontend:${{ env.tag }}
+            ${{ secrets.DOCKER_USERNAME }}/frontend:latest
