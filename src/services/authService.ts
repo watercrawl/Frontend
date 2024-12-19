@@ -1,5 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
-import { API_URL } from './api/api';
+import { API_URL } from '../utils/env';
 import { TokenPayload } from '../types/user';
 
 
@@ -28,13 +28,20 @@ export class AuthService {
     localStorage.setItem('refreshToken', token);
   }
 
+  setTokens(token: string, refreshToken: string): void {
+    this.removeToken();
+    this.setToken(token);
+    this.setRefreshToken(refreshToken);
+  }
+
   removeToken(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
   }
 
-  isTokenExpired(token: string): boolean {
+  isTokenExpired(): boolean {
     try {
+      const token = this.getRefreshToken() as string;
       const decoded = jwtDecode<TokenPayload>(token);
       const currentTime = Date.now() / 1000;
       return decoded.exp < currentTime;

@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { FormInput } from '../shared/FormInput';
 import { ValidationMessage } from '../shared/ValidationMessage';
 import { OAuthButtons } from './OAuthButtons';
 import { authApi } from '../../services/api/authApi';
-import type { ApiError } from '../../types/common';
 
 const passwordStrengthRegex = {
   hasNumber: /\d/,
@@ -19,6 +18,8 @@ const passwordStrengthRegex = {
 };
 
 const schema = yup.object({
+  first_name: yup.string().required('First name is required'),
+  last_name: yup.string().required('Last name is required'),
   email: yup
     .string()
     .email('Please enter a valid email')
@@ -32,6 +33,8 @@ const schema = yup.object({
     .matches(passwordStrengthRegex.hasSpecialChar, 'Password must contain at least one special character')
     .required('Password is required'),
 }).required();
+
+type FormData = yup.InferType<typeof schema>;
 
 const getPasswordStrength = (password: string): { score: number; message: string } => {
   let score = 0;
@@ -67,48 +70,55 @@ export const SignupForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [success, setSuccess] = useState(false);
 
-  const methods = useForm({
+  const methods = useForm<FormData>({
     resolver: yupResolver(schema),
     mode: 'onChange',
   });
 
-  const { handleSubmit, formState: { errors }, watch } = methods;
+  const { handleSubmit, formState: { errors }, watch, setError: setFieldError } = methods;
   const password = watch('password', '');
   const passwordStrength = password ? getPasswordStrength(password) : null;
 
-  const onSubmit = (data: { email: string; password: string }) => {
+  const onSubmit = (data: FormData) => {
     setIsLoading(true);
     setError(null);
-    
+
+    // Clear any previous field errors
+    Object.keys(data).forEach((field) => {
+      setFieldError(field as keyof FormData, { type: 'manual', message: '' });
+    });
+
     authApi.register(data)
       .then((_response) => {
-        navigate('/login');
+        setSuccess(true);
       })
-      .catch((err: ApiError) => {
-        // Handle API error response
-        if (err.errors) {
-          // Set field-specific errors
-          Object.entries(err.errors).forEach(([field, messages]) => {
-            if (field !== 'non_field_errors') {
-              methods.setError(field as 'email' | 'password', {
+      .catch((err: any) => {
+        console.log('API Error:', err);
+        // Access the error data from the Axios response
+        const errorData = err.response?.data;
+        console.log('Error Data:', errorData);
+
+        if (errorData?.errors) {
+          // Handle field-specific errors
+          Object.entries(errorData.errors).forEach(([field, messages]) => {
+            if (field === 'non_field_errors') {
+              setError(Array.isArray(messages) ? messages[0] : messages);
+            } else {
+              setFieldError(field as keyof FormData, {
                 type: 'manual',
                 message: Array.isArray(messages) ? messages[0] : messages,
               });
             }
           });
-          
-          // Set general error message if present
-          if (err.errors.non_field_errors) {
-            setError(err.errors.non_field_errors[0]);
+
+          // If we have a general message but no non_field_errors, show it at the top
+          if (!errorData.errors.non_field_errors && errorData.message) {
+            setError(errorData.message);
           }
-        } else if (err.message) {
-          // Set general error message
-          setError(err.message);
         } else {
-          // Fallback error message
-          setError('An error occurred during signup. Please try again.');
+          setError(errorData?.message || 'An error occurred during signup. Please try again.');
         }
       })
       .finally(() => {
@@ -128,13 +138,54 @@ export const SignupForm: React.FC = () => {
     return colors[score as keyof typeof colors];
   };
 
+  if (success) {
+    return (
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white dark:bg-gray-800 px-4 py-8 shadow sm:rounded-lg sm:px-10">
+          <h2 className="mb-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+            Check your email
+          </h2>
+          <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+            We've sent a verification email to your address. Please click the link in the email to verify your account.
+          </p>
+          <div className="mt-6 text-center">
+            <Link
+              to="/"
+              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
+            >
+              Return to login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <FormProvider {...methods}>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {error && <ValidationMessage message={error} type="error" />}
-            
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                label="First name"
+                name="first_name"
+                type="text"
+                error={errors.first_name?.message}
+                required
+              />
+
+              <FormInput
+                label="Last name"
+                name="last_name"
+                type="text"
+                error={errors.last_name?.message}
+                required
+              />
+            </div>
+
             <FormInput
               label="Email address"
               name="email"
@@ -198,9 +249,8 @@ export const SignupForm: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 ${
-                isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               {isLoading ? 'Creating account...' : 'Create account'}
             </button>
