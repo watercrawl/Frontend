@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Tab } from '@headlessui/react';
 import { teamService } from '../../services/api/team';
 import { UserCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Team, TeamMember } from '../../types/team';
+import toast from 'react-hot-toast';
+import { TeamInvitationsList, TeamInvitationsListRef } from '../../components/settings/TeamInvitationsList';
+import { useTeam } from '../../contexts/TeamContext';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
+}
+
+interface ErrorResponse {
+  message: string;
 }
 
 const SettingsPage: React.FC = () => {
@@ -18,6 +25,8 @@ const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
+  const invitationsListRef = useRef<TeamInvitationsListRef>(null);
+  const { refreshTeams } = useTeam();
 
   useEffect(() => {
     fetchTeam();
@@ -62,8 +71,10 @@ const SettingsPage: React.FC = () => {
       const updatedTeam = await teamService.updateTeamName(newTeamName);
       setTeam(updatedTeam);
       setEditingName(false);
-    } catch (error) {
-      console.error('Error updating team name:', error);
+      await refreshTeams(); // Refresh teams list in context
+      toast.success('Team name updated successfully');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update team name');
     } finally {
       setLoading(false);
     }
@@ -73,17 +84,27 @@ const SettingsPage: React.FC = () => {
     e.preventDefault();
     if (!newMemberEmail.trim()) return;
 
-    try {
-      setLoading(true);
-      await teamService.inviteMember(newMemberEmail, newMemberRole);
-      await fetchMembers(); // Refresh members list
-      setNewMemberEmail('');
-      setNewMemberRole(false);
-    } catch (error) {
-      console.error('Error inviting member:', error);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    teamService
+      .inviteMember(newMemberEmail, newMemberRole)
+      .then(() => {
+        fetchMembers(); // Refresh members list
+        setNewMemberEmail('');
+        setNewMemberRole(false);
+        toast.success('Member invited successfully');
+        invitationsListRef.current?.reloadInvitations();
+      })
+      .catch((error) => {
+        if (error.response?.status === 400) {
+          const errorData = error.response.data as ErrorResponse;
+          toast.error(errorData.message);
+        } else {
+          toast.error('An error occurred while inviting the member');
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleRemoveMember = async (memberId: string) => {
@@ -92,9 +113,13 @@ const SettingsPage: React.FC = () => {
     try {
       setLoading(true);
       await teamService.removeMember(memberId);
-      await fetchMembers(); // Refresh members list
-    } catch (error) {
-      console.error('Error removing member:', error);
+      await Promise.all([
+        fetchMembers(), // Refresh members list
+        refreshTeams(), // Refresh teams in context
+      ]);
+      toast.success('Team member removed successfully');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to remove team member');
     } finally {
       setLoading(false);
     }
@@ -165,22 +190,29 @@ const SettingsPage: React.FC = () => {
               {/* Invite Member Section */}
               <div>
                 <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">Invite Member</h3>
-                <div className="flex items-center space-x-4">
-                  <input
-                    type="email"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    placeholder="Enter email to invite"
-                    className="max-w-md h-10 px-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:focus:border-gray-400 dark:focus:ring-gray-400 dark:placeholder-gray-400"
-                    disabled={loading}
-                  />
-                  <button
-                    onClick={handleInviteMember}
-                    disabled={loading}
-                    className="inline-flex items-center h-10 px-4 text-sm font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 transition-colors duration-200"
-                  >
-                    Invite
-                  </button>
+                <form onSubmit={handleInviteMember} className="mt-6">
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="email"
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      placeholder="Enter email to invite"
+                      className="max-w-md h-10 px-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:focus:border-gray-400 dark:focus:ring-gray-400 dark:placeholder-gray-400"
+                      disabled={loading}
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="inline-flex items-center h-10 px-4 text-sm font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 transition-colors duration-200"
+                    >
+                      Invite
+                    </button>
+                  </div>
+                </form>
+
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Pending Invitations</h4>
+                  <TeamInvitationsList ref={invitationsListRef} />
                 </div>
               </div>
 

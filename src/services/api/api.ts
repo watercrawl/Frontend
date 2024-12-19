@@ -2,8 +2,7 @@ import axios from 'axios';
 
 import { AuthService } from '../authService';
 import { TeamService } from '../teamService';
-
-export const API_URL = import.meta.env.VITE_API_URL || 'http://DUMMY_URL_FOR_REPLACE';
+import { API_URL } from '../../utils/env';
 
 
 const api = axios.create({

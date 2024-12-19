@@ -9,6 +9,7 @@ import {
   KeyIcon,
   Cog6ToothIcon,
   ClockIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { TeamSelector } from '../components/dashboard/TeamSelector';
@@ -19,12 +20,13 @@ function classNames(...classes: string[]) {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, end: true },
   { name: 'Playground', href: '/dashboard/playground', icon: BeakerIcon },
   { name: 'Activity Logs', href: '/dashboard/logs', icon: ClockIcon },
   { name: 'Usage', href: '/dashboard/usage', icon: ChartBarIcon },
   { name: 'API Keys', href: '/dashboard/api-keys', icon: KeyIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
+  { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
 ];
 
 export const DashboardLayout = () => {
@@ -95,6 +97,7 @@ export const DashboardLayout = () => {
                               <li key={item.name}>
                                 <NavLink
                                   to={item.href}
+                                  end={item.end}
                                   className={({ isActive }) =>
                                     classNames(
                                       isActive
@@ -142,6 +145,7 @@ export const DashboardLayout = () => {
                       <li key={item.name}>
                         <NavLink
                           to={item.href}
+                          end={item.end}
                           className={({ isActive }) =>
                             classNames(
                               isActive
