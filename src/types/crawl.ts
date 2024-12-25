@@ -37,10 +37,7 @@ export interface SpiderOptions {
 export interface CrawlOptions {
   spider_options: SpiderOptions;
   page_options: PageOptions;
-  plugin_options?: {
-    llm_model?: string;
-    extractor_schema?: string;
-  };
+  plugin_options?: Record<string, object>;
 }
 
 

@@ -473,6 +473,32 @@ paths:
                   code:
                     type: integer
                     example: 500
+  /api/v1/core/plugins/schema:
+    get:
+      operationId: v1_core_plugins_schema_retrieve
+      tags:
+      - Core Plugins
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'message:':
+                    type: string
+                    example: An unexpected error occurred.
+                  errors:
+                    type: object
+                    example: null
+                  code:
+                    type: integer
+                    example: 500
   /api/v1/core/usage/:
     get:
       operationId: v1_core_usage_retrieve

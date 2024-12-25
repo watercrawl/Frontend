@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Tab } from '@headlessui/react';
 import { CrawlEvent, CrawlRequest, CrawlResult, CrawlStatus } from '../../types/crawl';
@@ -6,7 +6,7 @@ import { crawlService } from '../../services/api/crawl';
 import { PageOptionsForm, PageOptions } from '../forms/PageOptionsForm';
 import { SpiderOptionsForm, SpiderOptions } from '../forms/SpiderOptionsForm';
 import { ResultsTable } from '../ResultsTable';
-import { LLMOptionsForm } from '../forms/LLMOptionsForm';
+import PluginOptionsForm from './PluginOptionsForm';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -14,13 +14,17 @@ function classNames(...classes: string[]) {
 
 interface CrawlFormProps {
   showSpiderOptions: boolean;
+  onRequestChange?: (request: CrawlRequest) => void;
 }
 
-export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
+export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, onRequestChange}) => {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const [formErrors, setFormErrors] = useState<{
+    plugin?: boolean;
+  }>({});
 
   const [pageOptions, setPageOptions] = useState<PageOptions>({
     excludeTags: '',
@@ -29,11 +33,6 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
     extractMainContent: true,
     includeHtml: false,
     includeLinks: true,
-  });
-
-  const [llmOptions, setLlmOptions] = useState({
-    llmModel: '',
-    extractorSchema: '',
   });
 
   const [spiderOptions, setSpiderOptions] = useState<SpiderOptions>({
@@ -49,6 +48,50 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
     results: [],
     isExpanded: true,
   });
+
+  const [pluginOptions, setPluginOptions] = useState<Record<string, object>>({});
+
+  // Add a shared function to filter active plugins
+  const getActivePlugins = (plugins: Record<string, object>) => {
+    return Object.entries(plugins).reduce((acc, [key, value]) => {
+      if (value && typeof value === 'object' && 'is_active' in value && value.is_active) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, object>);
+  };
+
+  const updateRequest = () => {
+    if (!url) return;
+    
+    const request = {
+      url,
+      options: {
+        spider_options: {
+          max_depth: parseInt(spiderOptions.maxDepth),
+          page_limit: parseInt(spiderOptions.pageLimit),
+          allowed_domains: spiderOptions.allowedDomains.split(',').map(domain => domain.trim()).filter(Boolean),
+          exclude_paths: spiderOptions.excludePaths.split(',').map(path => path.trim()).filter(Boolean),
+          include_paths: spiderOptions.includePaths.split(',').map(path => path.trim()).filter(Boolean),
+        },
+        page_options: {
+          exclude_tags: pageOptions.excludeTags.split(',').map(tag => tag.trim()).filter(Boolean),
+          include_tags: pageOptions.includeTags.split(',').map(tag => tag.trim()).filter(Boolean),
+          wait_time: parseInt(pageOptions.waitTime),
+          only_main_content: pageOptions.extractMainContent,
+          include_html: pageOptions.includeHtml,
+          include_links: pageOptions.includeLinks,
+        },
+        plugin_options: getActivePlugins(pluginOptions)
+      }
+    } as CrawlRequest;
+
+    onRequestChange?.(request);
+  };
+
+  useEffect(() => {
+    updateRequest();
+  }, [url, pageOptions, spiderOptions, pluginOptions]);
 
   const handlePageOptionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -66,12 +109,12 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
     }));
   };
 
-  const handleLlmOptionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLlmOptions(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handlePluginOptionsChange = (formData: Record<string, object>) => {
+    setPluginOptions(formData);
+  };
+
+  const handlePluginValidation = (hasErrors: boolean) => {
+    setFormErrors(prev => ({ ...prev, plugin: hasErrors }));
   };
 
   const handleCrawlEvent = (event: CrawlEvent) => {
@@ -101,6 +144,14 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
       return;
     }
 
+    // Check for validation errors
+    if (formErrors.plugin) {
+      toast.error('Please fix the validation errors before submitting');
+      // Switch to the plugin tab if there are errors
+      setSelectedTab(tabs.findIndex(tab => tab.name === 'Plugin Options'));
+      return;
+    }
+
     setIsLoading(true);
     setCrawlStatus({ request: null, results: [], isExpanded: true });
 
@@ -123,12 +174,11 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
             include_html: pageOptions.includeHtml,
             include_links: pageOptions.includeLinks,
           },
-          plugin_options: {
-            llm_model: llmOptions.llmModel,
-            extractor_schema: llmOptions.extractorSchema,
-          }
+          plugin_options: getActivePlugins(pluginOptions)
         }
       } as CrawlRequest;
+
+      onRequestChange?.(request);
 
       const response = await crawlService.createCrawlRequest(request);
       await crawlService.subscribeToStatus(
@@ -169,7 +219,7 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
   const tabs = [
     ...(showSpiderOptions ? [{ name: 'Spider Options', content: <SpiderOptionsForm options={spiderOptions} onChange={handleSpiderOptionsChange} /> }] : []),
     { name: 'Page Options', content: <PageOptionsForm options={pageOptions} onChange={handlePageOptionsChange} /> },
-    { name: 'LLM Options', content: <LLMOptionsForm options={llmOptions} onChange={handleLlmOptionsChange} /> },
+    { name: 'Plugin Options', content: <PluginOptionsForm onChange={handlePluginOptionsChange} onValidation={handlePluginValidation} /> },
   ];
 
   return (
@@ -201,8 +251,8 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
               ) : (
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
+                  disabled={isLoading || formErrors.plugin}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Crawling...' : 'Start Crawling'}
                 </button>
@@ -221,11 +271,19 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
                         'px-4 py-2.5 text-sm font-medium leading-5',
                         selected
                           ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
-                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                        // Add red indicator for tabs with errors
+                        (tab.name === 'Plugin Options' && formErrors.plugin)
+                          ? 'text-red-500 dark:text-red-400'
+                          : ''
                       )
                     }
                   >
                     {tab.name}
+                    {/* Add error indicator */}
+                    {(tab.name === 'Plugin Options' && formErrors.plugin) && (
+                      <span className="ml-2 text-red-500">⚠️</span>
+                    )}
                   </Tab>
                 ))}
               </Tab.List>
@@ -233,7 +291,11 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions}) => {
                 {tabs.map((tab, idx) => (
                   <Tab.Panel
                     key={idx}
-                    className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg"
+                    className={`p-6 border rounded-lg ${
+                      (tab.name === 'Plugin Options' && formErrors.plugin)
+                        ? 'border-red-500 dark:border-red-500'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
                   >
                     {tab.content}
                   </Tab.Panel>
