@@ -22,10 +22,11 @@ export interface FormInputProps {
   required?: boolean;
   endAdornment?: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
 export interface ValidationMessageProps {
-  message: string;
+  message: string | string[];
   type: 'error' | 'success';
 }
 export interface LoginCredentials {
@@ -44,13 +45,13 @@ export interface AuthResponse {
 }
 
 export interface Profile {
-  id: string;
+  uuid: string;
   email: string;
   first_name: string;
   last_name: string;
   is_active: boolean;
-  date_joined: string;
-  last_login: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TokenPayload {

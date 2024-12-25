@@ -11,6 +11,7 @@ export const FormInput: React.FC<FormInputProps> = ({
   required = false,
   endAdornment,
   className = '',
+  disabled = false,
 }) => {
   const { register } = useFormContext();
 
@@ -26,6 +27,7 @@ export const FormInput: React.FC<FormInputProps> = ({
           type={type}
           id={name}
           placeholder={placeholder}
+          disabled={disabled}
           className={`
             block w-full rounded-md shadow-sm
             text-gray-900 dark:text-white
@@ -37,6 +39,7 @@ export const FormInput: React.FC<FormInputProps> = ({
             ${error ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
             ${endAdornment ? 'pr-10' : ''}
             ${className}
+            ${disabled && 'opacity-50 cursor-not-allowed'}
           `}
         />
         {endAdornment && (

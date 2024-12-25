@@ -9,26 +9,32 @@ import {
   KeyIcon,
   Cog6ToothIcon,
   ClockIcon,
+  UserIcon,
+  SunIcon,
+  MoonIcon,
 } from '@heroicons/react/24/outline';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { TeamSelector } from '../components/dashboard/TeamSelector';
 import { AuthGuard } from '../components/auth/AuthGuard';
+import { useTheme } from '../contexts/ThemeContext';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, end: true },
   { name: 'Playground', href: '/dashboard/playground', icon: BeakerIcon },
   { name: 'Activity Logs', href: '/dashboard/logs', icon: ClockIcon },
   { name: 'Usage', href: '/dashboard/usage', icon: ChartBarIcon },
   { name: 'API Keys', href: '/dashboard/api-keys', icon: KeyIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
+  { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
 ];
 
 export const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <AuthGuard>
@@ -95,6 +101,7 @@ export const DashboardLayout = () => {
                               <li key={item.name}>
                                 <NavLink
                                   to={item.href}
+                                  end={item.end}
                                   className={({ isActive }) =>
                                     classNames(
                                       isActive
@@ -142,6 +149,7 @@ export const DashboardLayout = () => {
                       <li key={item.name}>
                         <NavLink
                           to={item.href}
+                          end={item.end}
                           className={({ isActive }) =>
                             classNames(
                               isActive
@@ -183,6 +191,18 @@ export const DashboardLayout = () => {
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <TeamSelector />
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? (
+                    <SunIcon className="h-5 w-5" />
+                  ) : (
+                    <MoonIcon className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
           </div>

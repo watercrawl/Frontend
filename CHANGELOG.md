@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2024-12-25
+
+### Added
+- JSON Schema based dynamic form generation
+- Plugin system integration
+- Playground interface for testing crawlers
+- API client for plugins management
+
+### Changed
+- Refactored crawler form to use JSON Schema
+- Improved dashboard layout and navigation
+- Updated API specification
+- Enhanced type definitions for crawler configurations
+
+## [0.0.2] - 2024-12-19
+
+### Added
+- OAuth integration with Google and GitHub authentication
+- Forgot and reset password functionality
+- User profile management system
+- Team invitation management interface
+- Settings pages with team configuration
+- Loading states and shared UI components
+- Environment utilities for configuration management
+
+### Changed
+- Enhanced authentication flow with improved error handling
+- Updated API services with new endpoints
+- Improved form components with better validation
+- Restructured dashboard layout for better navigation
+
 ## [0.0.1] - 2024-12-16
 
 ### Added
@@ -31,3 +62,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Production deployment configurations
 
 [0.0.1]: https://github.com/watercrawl/frontend/releases/tag/0.0.1
+[0.0.2]: https://github.com/watercrawl/frontend/releases/tag/0.0.2
+[0.1.0]: https://github.com/watercrawl/frontend/releases/tag/0.1.0

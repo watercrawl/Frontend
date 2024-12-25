@@ -17,6 +17,10 @@ export const crawlService = {
     return data;
   },
 
+  async cancelCrawl(id: string) {
+    await api.delete(`/api/v1/core/crawl-requests/${id}/`);
+  },
+
   async subscribeToStatus(uuid: string, onEvent: (data: CrawlEvent) => void, onEnd?: () => void) {
     const response = await api.get(`/api/v1/core/crawl-requests/${uuid}/status/`, {
       responseType: 'stream',
@@ -46,5 +50,3 @@ export const crawlService = {
     return response.data;
   },
 };
-
-
