@@ -113,7 +113,7 @@ export default function ResultModal({ isOpen, onClose, result }: ResultModalProp
                   )}
                 </Tab.List>
                 <Tab.Panels className="h-[calc(80vh-4rem)] overflow-auto">
-                  <Tab.Panel className="h-full overflow-auto bg-white dark:bg-gray-800 p-6">
+                  <Tab.Panel className="h-full overflow-auto bg-white dark:bg-gray-700 p-6 dark:text-gray-100">
                     {loading ? (
                       <LoadingSpinner />
                     ) : (
