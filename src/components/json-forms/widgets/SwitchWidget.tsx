@@ -1,5 +1,7 @@
 import React from 'react';
+import { Switch } from '@headlessui/react';
 import { FieldProps } from '../types/schema';
+import { InfoTooltip } from '../../shared/FormComponents';
 
 export const SwitchWidget: React.FC<FieldProps> = ({
   schema,
@@ -9,23 +11,36 @@ export const SwitchWidget: React.FC<FieldProps> = ({
   disabled,
 }) => {
   return (
-    <label className="inline-flex items-center cursor-pointer">
-      <div className="relative">
-        <input
-          type="checkbox"
-          className="sr-only peer"
+    <Switch.Group>
+      <div className="flex items-center space-x-3">
+        <Switch
           checked={value || false}
-          onChange={(e) => onChange(e.target.checked)}
-          onBlur={onBlur}
+          onChange={onChange}
           disabled={schema.disabled || disabled}
-        />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+          onBlur={onBlur}
+          className={`${
+            value ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+          } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+        >
+          <span
+            className={`${
+              value ? 'translate-x-5' : 'translate-x-0'
+            } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+          />
+        </Switch>
+        {(schema.title || schema.description) && (
+          <div className="flex-1">
+            <div className="flex items-center space-x-1">
+              {schema.title && (
+                <Switch.Label className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                  {schema.title}
+                </Switch.Label>
+              )}
+              {schema.description && <InfoTooltip content={schema.description} />}
+            </div>
+          </div>
+        )}
       </div>
-      {schema.title && (
-        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-          {schema.title}
-        </span>
-      )}
-    </label>
+    </Switch.Group>
   );
 };

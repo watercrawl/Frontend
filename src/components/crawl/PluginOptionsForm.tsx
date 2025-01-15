@@ -1,30 +1,15 @@
-import { useEffect, useState } from 'react';
-import { pluginsService } from '../../services/api/plugins';
 import { JsonSchemaForm } from '../json-forms/JsonSchemaForm';
 import { JSONSchemaDefinition } from '../json-forms/types/schema';
+import { OptionGroup } from '../shared/FormComponents';
 
 interface PluginOptionsFormProps {
   onChange: (formData: any) => void;
   onValidation: (hasErrors: boolean) => void;
+  schema: JSONSchemaDefinition | null;
+  value: any;
 }
 
-export default function PluginOptionsForm({ onChange, onValidation }: PluginOptionsFormProps) {
-  const [schema, setSchema] = useState<JSONSchemaDefinition | null>(null);
-  const [formData, setFormData] = useState<any>({});
-
-  useEffect(() => {
-    const fetchSchema = async () => {
-      try {
-        const schemaData = await pluginsService.getPluginSchema();
-        setSchema(schemaData);
-      } catch (error) {
-        console.error('Error fetching plugin schema:', error);
-      }
-    };
-
-    fetchSchema();
-  }, []);
-
+export default function PluginOptionsForm({ onChange, onValidation, schema, value }: PluginOptionsFormProps) {
   if (!schema) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -36,19 +21,21 @@ export default function PluginOptionsForm({ onChange, onValidation }: PluginOpti
   }
 
   return (
-    <div className="relative space-y-4">
+    <OptionGroup
+      title="Plugin Configuration"
+      description="Configure settings for enabled plugins"
+    >
       <JsonSchemaForm
         schema={schema}
-        value={formData}
-        onChange={(newData) => {
-          setFormData(newData);
-          onChange(newData);
-        }}
+        value={value}
+        onChange={onChange}
         onError={(errors) => {
-          console.log('Validation errors:', errors);
+          if (errors.length > 0) {
+            console.log('Validation errors:', errors);
+          }
           onValidation(errors.length > 0);
         }}
       />
-    </div>
+    </OptionGroup>
   );
 }

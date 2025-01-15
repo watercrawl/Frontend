@@ -10,29 +10,18 @@ export const TextWidget: React.FC<TextWidgetProps> = ({
   value,
   onChange,
   onBlur,
-  errors,
-  required,
+  disabled,
   type = 'text',
 }) => {
-  const hasError = errors && errors.length > 0;
-  const ui = schema.ui || {};
-
   return (
     <input
       type={type}
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur}
-      placeholder={ui.placeholder}
-      required={required}
-      disabled={schema.disabled}
-      readOnly={schema.readOnly}
-      autoFocus={ui.autoFocus}
-      className={`w-full h-10 px-3 bg-transparent border ${
-        hasError ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-      } rounded-md text-gray-900 dark:text-white focus:outline-none focus:ring-1 ${
-        hasError ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-primary-500 focus:border-primary-500'
-      } dark:focus:border-primary-500 transition-colors ${ui.inputClassName || ''}`}
+      disabled={schema.disabled || disabled}
+      placeholder={schema.placeholder}
+      className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:focus:ring-primary-500 dark:bg-gray-800 sm:text-sm sm:leading-6"
     />
   );
 };

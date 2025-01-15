@@ -54,7 +54,7 @@ const UsagePage: React.FC = () => {
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Crawls</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Crawl Requests</p>
               <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                 {data.total_crawls?.toLocaleString()}
               </p>
@@ -68,7 +68,7 @@ const UsagePage: React.FC = () => {
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Documents</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Results</p>
               <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                 {data.total_documents?.toLocaleString()}
               </p>
@@ -116,8 +116,8 @@ const UsagePage: React.FC = () => {
         {/* Crawls Chart */}
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="mb-6">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Crawls History</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Number of crawls over time</p>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Crawl Requests History</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Number of crawl requests over time</p>
           </div>
           
           <div className="h-[300px]">
@@ -164,8 +164,8 @@ const UsagePage: React.FC = () => {
         {/* Documents Chart */}
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="mb-6">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Documents History</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Number of documents over time</p>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Results History</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Number of results over time</p>
           </div>
           
           <div className="h-[300px]">

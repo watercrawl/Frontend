@@ -1,10 +1,11 @@
 import React from 'react';
-import { ChevronDownIcon, ChevronRightIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDownIcon, ChevronRightIcon, ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { CrawlRequest } from '../../types/crawl';
-import { getStatusColor } from '../../utils/statusColors';
 import { activityLogsService } from '../../services/api/activityLogs';
 import { toast } from 'react-hot-toast';
+import { StatusBadge } from '../shared/StatusBadge';
 
 interface ActivityLogRowProps {
   request: CrawlRequest;
@@ -19,6 +20,8 @@ export const ActivityLogRow: React.FC<ActivityLogRowProps> = ({
   onRowClick,
   showDates = true
 }) => {
+  const navigate = useNavigate();
+
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent row expansion when clicking download
     
@@ -41,6 +44,11 @@ export const ActivityLogRow: React.FC<ActivityLogRowProps> = ({
     }
   };
 
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row expansion when clicking view
+    request.uuid && navigate(`/dashboard/logs/${request.uuid}`);
+  };
+
   return (
     <tr 
       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
@@ -55,9 +63,7 @@ export const ActivityLogRow: React.FC<ActivityLogRowProps> = ({
         {request.url}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-          {request.status}
-        </span>
+        <StatusBadge status={request.status} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
         {request.number_of_documents || 0}
@@ -73,13 +79,22 @@ export const ActivityLogRow: React.FC<ActivityLogRowProps> = ({
         </>
       )}
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-        <button
-          onClick={handleDownload}
-          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-          title="Download Results"
-        >
-          <ArrowDownTrayIcon className="h-5 w-5" />
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleDownload}
+            className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+            title="Download Results"
+          >
+            <ArrowDownTrayIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={handleViewDetails}
+            className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+            title="View Details"
+          >
+            <EyeIcon className="h-5 w-5" />
+          </button>
+        </div>
       </td>
     </tr>
   );

@@ -39,27 +39,15 @@ export const ApiDocumentation: React.FC<ApiDocumentationProps> = ({ request }) =
   };
 
   const generatePythonCode = (_: CrawlRequest | null) => {
-    return `Coming soon...
-
-# The API endpoint will be:
-# POST ${API_URL}/api/v1/core/crawl-requests/
-# Headers: X-API-Key: TEAM_API_KEY`;
+    return `coming soon ...`; 
   };
 
   const generateNodeCode = (_: CrawlRequest | null) => {
-    return `Coming soon...
-
-// The API endpoint will be:
-// POST ${API_URL}/api/v1/core/crawl-requests/
-// Headers: X-API-Key: TEAM_API_KEY`;
+    return `coming soon ...`;
   };
 
   const generateGoCode = (_: CrawlRequest | null) => {
-    return `Coming soon...
-
-// The API endpoint will be:
-// POST ${API_URL}/api/v1/core/crawl-requests/
-// Headers: X-API-Key: TEAM_API_KEY`;
+    return `coming soon ...`;
   };
 
   const tabs = useMemo(() => [
@@ -71,55 +59,69 @@ export const ApiDocumentation: React.FC<ApiDocumentationProps> = ({ request }) =
 
   if (!request) {
     return (
-      <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">API Documentation</h3>
-        <p className="text-gray-500 dark:text-gray-400">Enter a URL and configure options to see the API request example.</p>
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 p-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">API Documentation</h3>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Enter a URL and configure options to see the API request example.</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">API Documentation</h3>
-        <button
-          onClick={() => copyToClipboard(tabs[0].content)}
-          className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-        >
-          <ClipboardIcon className="h-4 w-4 mr-1.5" />
-          Copy cURL
-        </button>
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">API Documentation</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Use our REST API to integrate web crawling capabilities into your applications. Below are examples in different programming languages.
+        </p>
       </div>
-      <Tab.Group>
-        <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 dark:bg-gray-700 p-1">
-          {tabs.map((tab) => (
-            <Tab
-              key={tab.name}
-              className={({ selected }) =>
-                classNames(
-                  'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                  'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none',
-                  selected
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-white/[0.12] hover:text-gray-900 dark:hover:text-white'
-                )
-              }
-            >
-              {tab.name}
-            </Tab>
-          ))}
-        </Tab.List>
-        <Tab.Panels className="mt-4">
-          {tabs.map((tab, idx) => (
-            <Tab.Panel
-              key={idx}
-              className="rounded-xl bg-gray-900 p-4 text-sm text-gray-200 font-mono whitespace-pre overflow-x-auto"
-            >
-              {tab.content}
-            </Tab.Panel>
-          ))}
-        </Tab.Panels>
-      </Tab.Group>
+      
+      <div className="p-6">
+        <Tab.Group>
+          <Tab.List className="flex space-x-1 border-b border-gray-200 dark:border-gray-700">
+            {tabs.map((tab) => (
+              <Tab
+                key={tab.name}
+                className={({ selected }) =>
+                  classNames(
+                    'px-4 py-2.5 text-sm font-medium leading-5 focus:outline-none',
+                    selected
+                      ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  )
+                }
+              >
+                {tab.name}
+              </Tab>
+            ))}
+          </Tab.List>
+          <Tab.Panels className="mt-6">
+            {tabs.map((tab, idx) => (
+              <Tab.Panel key={idx}>
+                <div className="bg-[#1E1E1E] rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2 bg-[#2D2D2D] border-b border-[#404040]">
+                    <div className="flex space-x-2">
+                      <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                    </div>
+                    <div className="text-xs text-gray-400">{tab.name} Example</div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(tab.content)}
+                      className="text-xs text-gray-400 hover:text-gray-300 focus:outline-none inline-flex items-center"
+                    >
+                      <ClipboardIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="p-4 font-mono text-sm text-gray-300 overflow-x-auto">
+                    <pre className="whitespace-pre">{tab.content}</pre>
+                  </div>
+                </div>
+              </Tab.Panel>
+            ))}
+          </Tab.Panels>
+        </Tab.Group>
+      </div>
     </div>
   );
 };

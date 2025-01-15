@@ -21,9 +21,13 @@ export const AuthLayout: React.FC = () => {
       </button>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+        <h2 className="mt-6 text-center text-3xl font-extrabold">
           <span className="text-3xl">💦 </span>
-          <span className="text-2xl font-semibold bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
+          <span className={`text-2xl font-semibold ${
+            theme === 'dark' 
+              ? 'bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent'
+              : 'bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent'
+          }`}>
             WaterCrawl
           </span>
         </h2>

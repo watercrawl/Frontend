@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Dialog, Tab } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Dialog } from '@headlessui/react';
+import { Tab } from '@headlessui/react';
+import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import Editor from "@monaco-editor/react";
+import { CrawlResult } from '../types/crawl';
 
 interface ResultModalProps {
   isOpen: boolean;
   onClose: () => void;
-  resultUrl: string;
+  result: CrawlResult;
 }
 
 interface ResultData {
@@ -15,15 +17,22 @@ interface ResultData {
   raw?: any;
 }
 
-export default function ResultModal({ isOpen, onClose, resultUrl }: ResultModalProps) {
+export default function ResultModal({ isOpen, onClose, result }: ResultModalProps) {
   const [data, setData] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!result?.result) return;
+      
       try {
         setLoading(true);
-        const response = await fetch(resultUrl);
+        setError(null);
+        const response = await fetch(result.result);
+        if (!response.ok) {
+          throw new Error('Failed to fetch result data');
+        }
         const jsonData = await response.json();
         setData({
           markdown: jsonData.markdown || '',
@@ -32,109 +41,135 @@ export default function ResultModal({ isOpen, onClose, resultUrl }: ResultModalP
         });
       } catch (error) {
         console.error('Error fetching result data:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load result data');
         setData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (isOpen && resultUrl) {
+    if (isOpen && result) {
       fetchData();
     }
-  }, [isOpen, resultUrl]);
+
+    return () => {
+      // Cleanup when modal closes
+      setData(null);
+      setLoading(true);
+      setError(null);
+    };
+  }, [isOpen, result]);
 
   if (!isOpen) return null;
 
   const getTabClassName = (selected: boolean) => {
-    return `${selected ? 'bg-white dark:bg-gray-700 shadow' : ''} w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-700 dark:text-gray-200 ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 px-4`;
+    return `${
+      selected 
+        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' 
+        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+    } w-full rounded-lg py-2.5 text-sm font-medium leading-5 focus:outline-none ring-offset-2 ring-offset-blue-400 ring-white ring-opacity-60 px-4 transition-all`;
   };
 
-  return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl">
-          <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-            <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
-              Result Preview
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+    </div>
+  );
 
-          <div className="p-4">
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20"
+    >
+      <div className="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/75" />
+      <div className="relative mx-auto max-w-6xl">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-black/5">
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+
+          <div className="h-[80vh] overflow-hidden">
+            {error ? (
+              <div className="flex items-center justify-center h-full text-red-500 dark:text-red-400">
+                {error}
               </div>
-            ) : data ? (
+            ) : (
               <Tab.Group>
-                <Tab.List className="flex space-x-1 rounded-lg bg-gray-100 dark:bg-gray-700/50 p-1">
+                <Tab.List className="flex space-x-1 rounded-t-xl bg-gray-100 dark:bg-gray-900/50 p-2">
                   <Tab className={({ selected }) => getTabClassName(selected)}>
                     Markdown
                   </Tab>
                   <Tab className={({ selected }) => getTabClassName(selected)}>
                     JSON
                   </Tab>
-                  {data.links && data.links.length > 0 && (
-                  <Tab className={({ selected }) => getTabClassName(selected)}>
-                    Links
-                  </Tab>
+                  {result.attachments && result.attachments.length > 0 && (
+                    <Tab className={({ selected }) => getTabClassName(selected)}>
+                      Attachments ({result.attachments.length})
+                    </Tab>
                   )}
                 </Tab.List>
-                <Tab.Panels className="mt-4">
-                  <Tab.Panel className="rounded-lg bg-white dark:bg-gray-800 p-4 ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2">
-                    <pre className="whitespace-pre-wrap text-sm text-gray-800 bg-gray-100 font-mono h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded p-4">
-                      {data.markdown || ''}
-                    </pre>
+                <Tab.Panels className="h-[calc(80vh-4rem)] overflow-auto">
+                  <Tab.Panel className="h-full overflow-auto bg-white dark:bg-gray-800 p-6">
+                    {loading ? (
+                      <LoadingSpinner />
+                    ) : (
+                      <div className="prose dark:prose-invert max-w-none">
+                        <pre>{data?.markdown || 'No content available'}</pre>
+                      </div>
+                    )}
                   </Tab.Panel>
-                  <Tab.Panel className="rounded-lg bg-white dark:bg-gray-800 p-4 ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2">
-                    <div className="h-96">
+                  <Tab.Panel className="h-full overflow-auto bg-white dark:bg-gray-800">
+                    {loading ? (
+                      <LoadingSpinner />
+                    ) : (
                       <Editor
                         height="100%"
                         defaultLanguage="json"
-                        value={JSON.stringify(data.raw || {}, null, 2)}
+                        defaultValue={JSON.stringify(data?.raw || {}, null, 2)}
                         options={{
                           readOnly: true,
                           minimap: { enabled: false },
                           scrollBeyondLastLine: false,
-                          fontSize: 12,
-                          theme: 'vs-dark'
+                          fontSize: 13,
                         }}
+                        theme="vs-dark"
                       />
-                    </div>
+                    )}
                   </Tab.Panel>
-                  {data.links && data.links.length > 0 && (
-                  <Tab.Panel className="rounded-lg bg-white dark:bg-gray-800 p-4 ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2">
-                    <div className="whitespace-pre-wrap text-sm text-gray-800 bg-gray-100 font-mono h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded p-4">
-                      {(data.links || []).map((link, index) => (
-                        <a
-                          key={index}
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          {link}
-                        </a>
-                      ))}
-                    </div>
-                  </Tab.Panel>
+                  {result.attachments && result.attachments.length > 0 && (
+                    <Tab.Panel className="h-full overflow-auto bg-white dark:bg-gray-800 p-6">
+                      <div className="space-y-3">
+                        {result.attachments.map((attachment) => (
+                          <div 
+                            key={attachment.uuid} 
+                            className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <div className="text-sm text-gray-900 dark:text-white">
+                              {attachment.filename}
+                            </div>
+                            <a
+                              href={attachment.attachment}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                            >
+                              <ArrowDownTrayIcon className="h-4 w-4" />
+                              <span>Download</span>
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </Tab.Panel>
                   )}
                 </Tab.Panels>
               </Tab.Group>
-            ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                Failed to load result data
-              </div>
             )}
           </div>
-        </Dialog.Panel>
+        </div>
       </div>
     </Dialog>
   );

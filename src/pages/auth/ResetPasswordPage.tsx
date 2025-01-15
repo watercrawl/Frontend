@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ResetPasswordForm } from '../../components/auth/ResetPasswordForm';
 import { authApi } from '../../services/api/authApi';
 import Loading from '../../components/shared/Loading';
 
-export const ResetPasswordPage: React.FC = () => {
+const ResetPasswordPage = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [isValidating, setIsValidating] = useState(true);
@@ -42,3 +42,5 @@ export const ResetPasswordPage: React.FC = () => {
 
   return token ? <ResetPasswordForm token={token} /> : null;
 };
+
+export default ResetPasswordPage;

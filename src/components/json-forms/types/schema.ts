@@ -61,7 +61,8 @@ export interface UIOptions {
 }
 
 export interface JSONSchemaDefinition {
-  placeholder: string | undefined;
+  multipleOf?: string | number;
+  placeholder?: string;
   type: JSONSchemaType;
   title?: string;
   description?: string;

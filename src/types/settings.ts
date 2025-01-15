@@ -5,4 +5,5 @@ export interface Settings {
     is_signup_active: boolean;
     is_github_login_active: boolean;
     is_google_login_active: boolean;
+    api_version: string;
 }

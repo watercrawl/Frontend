@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SignupForm } from '../../components/auth/SignupForm';
 import { AuthService } from '../../services/authService';
 
-export const SignupPage = () => {
+const SignupPage = () => {
   const navigate = useNavigate();
   const authService = AuthService.getInstance();
 
@@ -18,4 +18,6 @@ export const SignupPage = () => {
     <SignupForm />
   );
 };
+
+export default SignupPage;
 
