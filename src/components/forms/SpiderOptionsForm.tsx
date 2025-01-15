@@ -1,4 +1,5 @@
 import React from 'react';
+import { FormInput, InfoTooltip, OptionGroup } from '../shared/FormComponents';
 
 export interface SpiderOptions {
   maxDepth: string;
@@ -10,100 +11,114 @@ export interface SpiderOptions {
 
 interface SpiderOptionsFormProps {
   options: SpiderOptions;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (options: Partial<SpiderOptions>) => void;
 }
 
-
 export const SpiderOptionsForm: React.FC<SpiderOptionsFormProps> = ({ options, onChange }) => {
+  const handleInputChange = (name: keyof SpiderOptions, value: string) => {
+    onChange({ [name]: value });
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Left Side - Input Fields */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Crawler Settings</h3>
-        {/* First Row */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="maxDepth" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Max Depth
-            </label>
-            <input
-              type="text"
-              name="maxDepth"
-              id="maxDepth"
-              value={options.maxDepth}
-              onChange={onChange}
-              className="w-full h-10 px-3 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-gray-400 dark:focus:border-gray-500"
-              placeholder="1"
-            />
-          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Left Column - Crawler Settings */}
+      <div className="space-y-6">
+        <OptionGroup
+          title="Crawler Settings"
+          description="Configure how deep and wide the crawler should go"
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center space-x-1 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Max Depth
+                  </label>
+                  <InfoTooltip content="Maximum depth of pages to crawl from the starting URL" />
+                </div>
+                <FormInput
+                  label=""
+                  type="number"
+                  value={options.maxDepth}
+                  onChange={(value) => handleInputChange('maxDepth', value)}
+                  placeholder="1"
+                />
+              </div>
+              
+              <div>
+                <div className="flex items-center space-x-1 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Page Limit
+                  </label>
+                  <InfoTooltip content="Maximum number of pages to crawl" />
+                </div>
+                <FormInput
+                  label=""
+                  type="number"
+                  value={options.pageLimit}
+                  onChange={(value) => handleInputChange('pageLimit', value)}
+                  placeholder="1"
+                />
+              </div>
+            </div>
 
-          <div>
-            <label htmlFor="pageLimit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Page Limit
-            </label>
-            <input
-              type="text"
-              name="pageLimit"
-              id="pageLimit"
-              value={options.pageLimit}
-              onChange={onChange}
-              className="w-full h-10 px-3 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-gray-400 dark:focus:border-gray-500"
-              placeholder="1"
-            />
+            <div>
+              <div className="flex items-center space-x-1 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Allowed Domains
+                </label>
+                <InfoTooltip content="Comma-separated list of domains to crawl (e.g., example.com, sub.example.com)" />
+              </div>
+              <FormInput
+                label=""
+                value={options.allowedDomains}
+                onChange={(value) => handleInputChange('allowedDomains', value)}
+                placeholder="example.com, sub.example.com"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Second Row */}
-        <div>
-          <label htmlFor="allowedDomains" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Allowed Domains (comma-separated)
-          </label>
-          <input
-            type="text"
-            name="allowedDomains"
-            id="allowedDomains"
-            value={options.allowedDomains}
-            onChange={onChange}
-            className="w-full h-10 px-3 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-gray-400 dark:focus:border-gray-500"
-            placeholder="example.com, sub.example.com"
-          />
-        </div>
+        </OptionGroup>
       </div>
 
-      {/* Right Side - Path Filters */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Path Filters</h3>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="excludePaths" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Exclude Paths (comma-separated)
-            </label>
-            <input
-              type="text"
-              name="excludePaths"
-              id="excludePaths"
-              value={options.excludePaths}
-              onChange={onChange}
-              className="w-full h-10 px-3 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-gray-400 dark:focus:border-gray-500"
-              placeholder="/admin/*, /api/*"
-            />
-          </div>
+      {/* Right Column - Path Filters */}
+      <div className="space-y-6">
+        <OptionGroup
+          title="Path Filters"
+          description="Specify which paths to include or exclude from crawling"
+        >
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center space-x-1 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Exclude Paths
+                </label>
+                <InfoTooltip content="Comma-separated list of paths to exclude from crawling (e.g., /login, /admin)" />
+              </div>
+              <FormInput
+                label=""
+                value={options.excludePaths}
+                onChange={(value) => handleInputChange('excludePaths', value)}
+                placeholder="/login, /admin"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="includePaths" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Include Paths (comma-separated)
-            </label>
-            <input
-              type="text"
-              name="includePaths"
-              id="includePaths"
-              value={options.includePaths}
-              onChange={onChange}
-              className="w-full h-10 px-3 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-gray-400 dark:focus:border-gray-500"
-              placeholder="/blog/*, /docs/*"
-            />
+            <div>
+              <div className="flex items-center space-x-1 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Include Paths
+                </label>
+                <InfoTooltip content="Comma-separated list of paths to include in crawling (e.g., /blog, /docs)" />
+              </div>
+              <FormInput
+                label=""
+                value={options.includePaths}
+                onChange={(value) => handleInputChange('includePaths', value)}
+                placeholder="/blog, /docs"
+              />
+            </div>
           </div>
-        </div>
+        </OptionGroup>
       </div>
-    </div>);
+    </div>
+  );
 };

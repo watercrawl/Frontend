@@ -20,12 +20,12 @@ export const JsonSchemaForm: React.FC<JsonSchemaFormProps> = ({
 
   // Initialize default values
   useEffect(() => {
-    if (value === undefined && schema.default !== undefined) {
-      onChange(schema.default);
-    } else if (schema.type === 'object' && value === undefined) {
-      // Initialize empty object with default values from properties
-      const defaultValue: Record<string, any> = {};
-      if (schema.properties) {
+    if (!value) {  // Only run if value is null/undefined
+      if (schema.default !== undefined) {
+        onChange(schema.default);
+      } else if (schema.type === 'object' && schema.properties) {
+        // Initialize empty object with default values from properties
+        const defaultValue: Record<string, any> = {};
         Object.entries(schema.properties).forEach(([key, propSchema]) => {
           if (propSchema.default !== undefined) {
             defaultValue[key] = propSchema.default;
@@ -42,18 +42,23 @@ export const JsonSchemaForm: React.FC<JsonSchemaFormProps> = ({
             }
           }
         });
-      }
-      if (Object.keys(defaultValue).length > 0) {
-        onChange(defaultValue);
+        if (Object.keys(defaultValue).length > 0) {
+          onChange(defaultValue);
+        }
       }
     }
-  }, [schema, value, onChange]);
+  }, [schema]); // Only depend on schema changes
 
+  // Validate on value or schema changes
   useEffect(() => {
-    const validationErrors = validateValue(value, schema);
-    setErrors(validationErrors);
-    onError?.(validationErrors);
-  }, [value, schema, onError]);
+    if (value !== undefined) {  // Only validate if we have a value
+      const validationErrors = validateValue(value, schema);
+      setErrors(validationErrors);
+      if (onError) {  // Only call if onError exists
+        onError(validationErrors);
+      }
+    }
+  }, [value, schema]);  // Remove onError from dependencies
 
   const handleChange = (newValue: any) => {
     onChange(newValue);

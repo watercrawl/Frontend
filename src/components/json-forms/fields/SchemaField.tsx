@@ -10,6 +10,7 @@ import { JsonEditorWidget } from '../widgets/JsonEditorWidget';
 import { ObjectField } from './ObjectField';
 import { ArrayField } from './ArrayField';
 import { CheckboxWidget } from '../widgets/CheckboxWidget';
+import { InfoTooltip } from '../../shared/FormComponents';
 
 export const SchemaField: React.FC<FieldProps> = (props) => {
   const { schema, errors = [] } = props;
@@ -30,7 +31,6 @@ export const SchemaField: React.FC<FieldProps> = (props) => {
           return <JsonEditorWidget {...props} />;
         case 'checkbox':
           return <CheckboxWidget {...props} />;
-        // Add more custom widgets here
       }
     }
 
@@ -80,7 +80,7 @@ export const SchemaField: React.FC<FieldProps> = (props) => {
       <div className={`mb-4 ${ui.className || ''}`}>
         {renderWidget()}
         {hasError && (
-          <div className={`mt-1 text-sm text-red-500 ${ui.errorClassName || ''}`}>
+          <div className="mt-1 text-sm text-red-500">
             {errors.map((error, index) => (
               <div key={index}>{error.message}</div>
             ))}
@@ -92,22 +92,20 @@ export const SchemaField: React.FC<FieldProps> = (props) => {
 
   return (
     <div className={`mb-4 ${ui.className || ''}`}>
-      <div className="flex justify-between mb-1">
-        {schema.title && (
-          <label className={`block text-sm font-medium text-gray-700 dark:text-gray-300 ${ui.labelClassName || ''}`}>
-            {schema.title}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
-          </label>
-        )}
-      </div>
-      {schema.description && (
-        <p className={`text-sm text-gray-500 dark:text-gray-400 mb-2 ${ui.descriptionClassName || ''}`}>
-          {schema.description}
-        </p>
+      {(schema.title || schema.description) && (
+        <div className="flex items-center space-x-1 mb-1">
+          {schema.title && (
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {schema.title}
+              {props.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+          )}
+          {schema.description && <InfoTooltip content={schema.description} />}
+        </div>
       )}
       {renderWidget()}
       {hasError && (
-        <div className={`mt-1 text-sm text-red-500 ${ui.errorClassName || ''}`}>
+        <div className="mt-1 text-sm text-red-500">
           {errors.map((error, index) => (
             <div key={index}>{error.message}</div>
           ))}

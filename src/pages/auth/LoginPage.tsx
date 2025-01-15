@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../../components/auth/LoginForm';
 import { AuthService } from '../../services/authService';
 
-export const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
   const authService = AuthService.getInstance();
 
@@ -19,3 +19,5 @@ export const LoginPage: React.FC = () => {
     <LoginForm />
   );
 };
+
+export default LoginPage;

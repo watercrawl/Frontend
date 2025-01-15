@@ -20,10 +20,10 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
   onRowClick,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedResult, setSelectedResult] = useState<string>('');
+  const [selectedResult, setSelectedResult] = useState<CrawlResult | null>(null);
 
   const handlePreviewClick = (result: CrawlResult) => {
-    setSelectedResult(result.result);
+    setSelectedResult(result);
     setIsModalOpen(true);
   };
 
@@ -71,11 +71,16 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
       </div>
 
       {/* Result Modal */}
-      <ResultModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        resultUrl={selectedResult}
-      />
+      {selectedResult && (
+        <ResultModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedResult(null);
+          }}
+          result={selectedResult}
+        />
+      )}
     </>
   );
 };

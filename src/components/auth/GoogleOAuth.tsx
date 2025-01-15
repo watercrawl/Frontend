@@ -11,7 +11,7 @@ export default function GoogleOAuth({ onSuccess, onError }: GoogleOAuthProps) {
 
     useGoogleOneTapLogin({
       onSuccess: credentialResponse => {
-        return onSuccess('google', credentialResponse.credential as string);
+        return onSuccess('google-signin', credentialResponse.credential as string);
       },
       onError: () => {
         return onError();

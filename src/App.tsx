@@ -1,25 +1,27 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TeamProvider } from './contexts/TeamContext';
 import { AuthLayout } from './layouts/AuthLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { TeamScopedComponent } from './components/shared/TeamScopedComponent';
-import { LoginPage } from './pages/auth/LoginPage';
-import { SignupPage } from './pages/auth/SignupPage';
-import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
-import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
-import DashboardPage from './pages/dashboard/DashboardPage';
-import ActivityLogsPage from './pages/dashboard/ActivityLogsPage';
-import ApiKeysPage from './pages/dashboard/ApiKeysPage';
-import SettingsPage from './pages/dashboard/SettingsPage';
-import PlaygroundPage from './pages/dashboard/PlaygroundPage';
-import UsagePage from './pages/dashboard/UsagePage';
-import ProfilePage from './pages/dashboard/ProfilePage';
 import { Toaster } from 'react-hot-toast';
 import { SettingsProvider } from './contexts/SettingsProvider';
 import { NotFoundPage } from './pages/NotFoundPage';
+
+const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
+const SignupPage = React.lazy(() => import('./pages/auth/SignupPage'));
+const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage'));
+const VerifyEmailPage = React.lazy(() => import('./pages/auth/VerifyEmailPage'));
+const DashboardPage = React.lazy(() => import('./pages/dashboard/DashboardPage'));
+const ActivityLogsPage = React.lazy(() => import('./pages/dashboard/ActivityLogsPage'));
+const ApiKeysPage = React.lazy(() => import('./pages/dashboard/ApiKeysPage'));
+const SettingsPage = React.lazy(() => import('./pages/dashboard/SettingsPage'));
+const PlaygroundPage = React.lazy(() => import('./pages/dashboard/PlaygroundPage'));
+const UsagePage = React.lazy(() => import('./pages/dashboard/UsagePage'));
+const ProfilePage = React.lazy(() => import('./pages/dashboard/ProfilePage'));
+const CrawlRequestDetailPage = React.lazy(() => import('./pages/dashboard/CrawlRequestDetailPage'));
 
 const App: React.FC = () => {
   return (
@@ -50,33 +52,36 @@ const App: React.FC = () => {
           }}
         />
         <SettingsProvider>
-          <Routes>
-            <Route element={<AuthLayout />}>
-              <Route path="/" element={<LoginPage />} />
-              <Route path="/register" element={<SignupPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-              <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-            </Route>
-            <Route element={
-              <TeamProvider>
-                <TeamScopedComponent>
-                  <DashboardLayout />
-                </TeamScopedComponent>
-              </TeamProvider>
-            }>
-              <Route path="/dashboard">
-                <Route index element={<DashboardPage />} />
-                <Route path="playground" element={<PlaygroundPage />} />
-                <Route path="logs" element={<ActivityLogsPage />} />
-                <Route path="usage" element={<UsagePage />} />
-                <Route path="api-keys" element={<ApiKeysPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="profile" element={<ProfilePage />} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+              <Route element={<AuthLayout />}>
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/register" element={<SignupPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
               </Route>
-            </Route>
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+              <Route element={
+                <TeamProvider>
+                  <TeamScopedComponent>
+                    <DashboardLayout />
+                  </TeamScopedComponent>
+                </TeamProvider>
+              }>
+                <Route path="/dashboard">
+                  <Route index element={<DashboardPage />} />
+                  <Route path="playground" element={<PlaygroundPage />} />
+                  <Route path="logs" element={<ActivityLogsPage />} />
+                  <Route path="logs/:requestId" element={<CrawlRequestDetailPage />} />
+                  <Route path="usage" element={<UsagePage />} />
+                  <Route path="api-keys" element={<ApiKeysPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="profile" element={<ProfilePage />} />
+                </Route>
+              </Route>
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </SettingsProvider>
       </Router>
     </ThemeProvider>

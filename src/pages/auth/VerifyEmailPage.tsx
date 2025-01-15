@@ -5,7 +5,7 @@ import { AuthService } from '../../services/authService';
 import { TeamService } from '../../services/teamService';
 import Loading from '../../components/shared/Loading';
 
-export function VerifyEmailPage() {
+const VerifyEmailPage = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -83,3 +83,5 @@ export function VerifyEmailPage() {
     </div>
   );
 }
+
+export default VerifyEmailPage;

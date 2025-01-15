@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Set the dummy API URL that will be replaced at runtime
 ENV VITE_API_URL=http://DUMMY_URL_FOR_REPLACE
+ARG VITE_VERSION=unknown
 
 # Copy package files
 COPY package.json yarn.lock ./

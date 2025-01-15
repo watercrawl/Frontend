@@ -1,5 +1,4 @@
-import { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import {useState } from 'react';
 import {
   Bars3Icon,
   ChartBarIcon,
@@ -17,6 +16,8 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { TeamSelector } from '../components/dashboard/TeamSelector';
 import { AuthGuard } from '../components/auth/AuthGuard';
 import { useTheme } from '../contexts/ThemeContext';
+import {APP_VERSION} from '../utils/env';
+import { useSettings } from '../contexts/SettingsProvider';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -35,100 +36,93 @@ const navigation = [
 export const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const {settings} = useSettings();
 
   return (
     <AuthGuard>
       <div>
-        <Transition.Root show={sidebarOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
-            <Transition.Child
-              as={Fragment}
-              enter="transition-opacity ease-linear duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="transition-opacity ease-linear duration-300"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-900/80" />
-            </Transition.Child>
+        {/* Mobile menu */}
+        <div 
+          className={classNames(
+            'lg:hidden fixed inset-0 z-50 transition-all duration-200 ease-in-out',
+            sidebarOpen ? 'visible' : 'invisible'
+          )}
+        >
+          {/* Backdrop */}
+          <div 
+            className={classNames(
+              'fixed inset-0 bg-gray-900/80 transition-opacity duration-200 ease-in-out',
+              sidebarOpen ? 'opacity-100' : 'opacity-0'
+            )}
+            onClick={() => setSidebarOpen(false)}
+          />
 
-            <div className="fixed inset-0 flex">
-              <Transition.Child
-                as={Fragment}
-                enter="transition ease-in-out duration-300 transform"
-                enterFrom="-translate-x-full"
-                enterTo="translate-x-0"
-                leave="transition ease-in-out duration-300 transform"
-                leaveFrom="translate-x-0"
-                leaveTo="-translate-x-full"
-              >
-                <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                  <Transition.Child
-                    as={Fragment}
-                    enter="ease-in-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in-out duration-300"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                  >
-                    <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-                      <button
-                        type="button"
-                        className="-m-2.5 p-2.5"
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        <span className="sr-only">Close sidebar</span>
-                        <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </Transition.Child>
-                  <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gradient-to-b from-blue-950 to-blue-900 px-6 pb-4">
-                    <div className="flex h-16 shrink-0 items-center">
-                      <Link to="/dashboard" className="flex items-center space-x-2">
-                        <span className="text-2xl">💦</span>
-                        <span className="text-lg font-semibold bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
-                          WaterCrawl
-                        </span>
-                      </Link>
-                    </div>
-                    <nav className="flex flex-1 flex-col">
-                      <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                        <li>
-                          <ul role="list" className="-mx-2 space-y-1">
-                            {navigation.map((item) => (
-                              <li key={item.name}>
-                                <NavLink
-                                  to={item.href}
-                                  end={item.end}
-                                  className={({ isActive }) =>
-                                    classNames(
-                                      isActive
-                                        ? 'bg-blue-800/50 text-blue-100'
-                                        : 'text-blue-200 hover:text-blue-100 hover:bg-blue-800/30',
-                                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6'
-                                    )
-                                  }
-                                >
-                                  <item.icon
-                                    className="h-5 w-5 shrink-0"
-                                    aria-hidden="true"
-                                  />
-                                  {item.name}
-                                </NavLink>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
+          {/* Sidebar */}
+          <div 
+            className={classNames(
+              'fixed inset-y-0 left-0 flex w-full max-w-xs transform transition-transform duration-200 ease-in-out',
+              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            )}
+          >
+            <div className="relative mr-16 flex w-full max-w-xs flex-1">
+              <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span className="sr-only">Close sidebar</span>
+                  <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gradient-to-b from-blue-950 to-blue-900 px-6 pb-4">
+                <div className="flex h-16 shrink-0 items-center">
+                  <Link to="/dashboard" className="flex items-center space-x-2">
+                    <span className="text-2xl">💦</span>
+                    <span className="text-lg font-semibold bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
+                      WaterCrawl
+                    </span>
+                  </Link>
+                </div>
+                <nav className="flex flex-1 flex-col">
+                  <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                    <li>
+                      <ul role="list" className="-mx-2 space-y-1">
+                        {navigation.map((item) => (
+                          <li key={item.name}>
+                            <NavLink
+                              to={item.href}
+                              end={item.end}
+                              onClick={() => setSidebarOpen(false)}
+                              className={({ isActive }) =>
+                                classNames(
+                                  isActive
+                                    ? 'bg-blue-800/50 text-blue-100'
+                                    : 'text-blue-200 hover:text-blue-100 hover:bg-blue-800/30',
+                                  'group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6'
+                                )
+                              }
+                            >
+                              <item.icon
+                                className="h-5 w-5 shrink-0"
+                                aria-hidden="true"
+                              />
+                              {item.name}
+                            </NavLink>
+                          </li>
+                        ))}
                       </ul>
-                    </nav>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
+                    </li>
+                  </ul>
+                </nav>
+                <div className="text-blue-200/60 text-xs text-center pb-2">
+                  Frontend Version: <b>{APP_VERSION}</b> <br />
+                  Backend Version: <b>{settings?.api_version}</b>
+                </div>
+              </div>
             </div>
-          </Dialog>
-        </Transition.Root>
+          </div>
+        </div>
 
         {/* Static sidebar for desktop */}
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
@@ -171,6 +165,22 @@ export const DashboardLayout = () => {
                 </li>
               </ul>
             </nav>
+            <div className="text-blue-200/60 text-xs text-center pb-2">
+              Frontend Version: <b>{APP_VERSION}</b> <br />
+              Backend Version: <b>{settings?.api_version}</b>
+              {/* Copyright */}
+              <p className="text-xs leading-6 text-blue-200/60 pt-2">
+                &copy;{new Date().getFullYear()} - Made with ❤️ by{' '}
+                <a
+                  href="https://watercrawl.dev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-200/60 hover:text-blue-100"
+                >
+                  <b>WaterCrawl</b>
+                </a>
+              </p>
+            </div>
           </div>
         </div>
 

@@ -10,6 +10,11 @@ export const activityLogsService = {
     return data;
   },
 
+  async getCrawlRequest(requestId: string): Promise<CrawlRequest> {
+    const { data } = await api.get<CrawlRequest>(`/api/v1/core/crawl-requests/${requestId}/`);
+    return data;
+  },
+
   async getCrawlResults(requestId: string, page: number = 1): Promise<PaginatedResponse<CrawlResult>> {
     const { data } = await api.get<PaginatedResponse<CrawlResult>>(
       `/api/v1/core/crawl-requests/${requestId}/results/`,

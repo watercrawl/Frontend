@@ -1,21 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ResultModal from '../../components/ResultModal';
-import { ActivityLogRow } from '../../components/activity-logs/ActivityLogRow';
+import { ActivityLogExpandedRow } from '../../components/activity-logs/ActivityLogExpandedRow';
+import { CrawlRequestCard } from '../../components/shared/CrawlRequestCard';
 import { EmptyState } from '../../components/activity-logs/EmptyState';
 import { PaginatedResponse } from '../../types/common';
 import { CrawlRequest, CrawlResult } from '../../types/crawl';
 import { activityLogsService } from '../../services/api/activityLogs';
-import { ActivityLogExpandedRow } from '../../components/activity-logs/ActivityLogExpandedRow';
+import { useIsTabletOrMobile } from '../../hooks/useMediaQuery';
+import { Pagination } from '../../components/shared/Pagination';
+import { ChevronUpIcon, ChevronDownIcon, ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { StatusBadge } from '../../components/shared/StatusBadge';
+import { formatDistanceToNow } from 'date-fns';
+import { formatDuration } from '../../utils/formatters';
+
 
 const ActivityLogsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [crawlRequests, setCrawlRequests] = useState<PaginatedResponse<CrawlRequest> | null>(null);
   const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
   const [results, setResults] = useState<{ [key: string]: PaginatedResponse<CrawlResult> }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadingResults, setLoadingResults] = useState<{ [key: string]: boolean }>({});
-  const [selectedResult, setSelectedResult] = useState<string | null>(null);
+  const [selectedResult, setSelectedResult] = useState<CrawlResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const isTabletOrMobile = useIsTabletOrMobile();
 
   const fetchCrawlRequests = async (page: number) => {
     try {
@@ -74,6 +85,30 @@ const ActivityLogsPage: React.FC = () => {
     }
   };
 
+  const handleDownload = async (e: React.MouseEvent, requestId: string) => {
+    e.stopPropagation();
+    try {
+      const blob = await activityLogsService.downloadResults(requestId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `crawl-results-${requestId}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      // toast.success('Download started');
+    } catch (error) {
+      console.error('Error downloading results:', error);
+      // toast.error('Failed to download results');
+    }
+  };
+
+  const handleViewDetails = (e: React.MouseEvent, requestId: string) => {
+    e.stopPropagation();
+    navigate(`/dashboard/logs/${requestId}`);
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -89,7 +124,7 @@ const ActivityLogsPage: React.FC = () => {
 
   return (
     <div className="h-full">
-      <div className="px-8 py-6">
+      <div className="px-4 sm:px-8 py-6">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Activity Logs</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           View your recent crawl requests and their results
@@ -99,89 +134,152 @@ const ActivityLogsPage: React.FC = () => {
           {hasNoData ? (
             <EmptyState />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      URL
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Documents
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Updated
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                  {crawlRequests?.results.map((request) => (
-                    <React.Fragment key={request.uuid}>
-                      <ActivityLogRow
+            <>
+              {/* Mobile and Tablet Card View */}
+              {isTabletOrMobile ? (
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {crawlRequests?.results.map((request) => (
+                      <CrawlRequestCard
+                        key={request.uuid}
                         request={request}
-                        isExpanded={expandedRequest === request.uuid}
-                        onRowClick={handleRowClick}
                       />
-                      {expandedRequest === request.uuid && (
-                        <tr>
-                          <td colSpan={6}>
-                            <ActivityLogExpandedRow
-                              results={results[request.uuid]?.results || []}
-                              isLoading={loadingResults[request.uuid]}
-                              onPreviewClick={(result: CrawlResult) => {
-                                setSelectedResult(result.result);
-                                setIsModalOpen(true);
-                              }}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* Pagination */}
-              {crawlRequests && crawlRequests.count > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 sm:px-6">
-                  <div className="flex justify-between flex-1 sm:hidden">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={!crawlRequests.previous}
-                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={!crawlRequests.next}
-                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-                    >
-                      Next
-                    </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Desktop Table View */
+                <div className="mt-8 flex flex-col">
+                  <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div className="inline-block min-w-full py-2 align-middle px-4 sm:px-6 lg:px-8">
+                      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                          <thead className="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
+                                URL
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                                Status
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                                Results
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                                Created
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                                Duration
+                              </th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                <span className="sr-only">Actions</span>
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                            {crawlRequests?.results.map((request) => (
+                              <React.Fragment key={request.uuid}>
+                                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
+                                    <div className="flex items-center">
+                                      <span className="max-w-[300px] truncate" title={request.url}>
+                                        {request.url}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <StatusBadge status={request.status} />
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    {request.number_of_documents}
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    {formatDuration(request.duration, request.created_at)}
+                                  </td>
+                                  <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <div className="flex justify-end space-x-3">
+                                      <button
+                                        onClick={(e) => handleDownload(e, request.uuid)}
+                                        className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
+                                        title="Download Results"
+                                      >
+                                        <ArrowDownTrayIcon className="h-5 w-5" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => handleViewDetails(e, request.uuid)}
+                                        className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
+                                        title="View Details"
+                                      >
+                                        <EyeIcon className="h-5 w-5" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleRowClick(request.uuid)}
+                                        className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
+                                        title={expandedRequest === request.uuid ? "Collapse" : "Expand"}
+                                      >
+                                        {expandedRequest === request.uuid ? (
+                                          <ChevronUpIcon className="h-5 w-5" />
+                                        ) : (
+                                          <ChevronDownIcon className="h-5 w-5" />
+                                        )}
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {expandedRequest === request.uuid && (
+                                  <tr>
+                                    <td colSpan={6}>
+                                      <ActivityLogExpandedRow
+                                        results={results[request.uuid]?.results || []}
+                                        isLoading={loadingResults[request.uuid]}
+                                        onPreviewClick={(result: CrawlResult) => {
+                                          setSelectedResult(result);
+                                          setIsModalOpen(true);
+                                        }}
+                                      />
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-            </div>
+
+              {/* Pagination - Same for all views */}
+              {crawlRequests && crawlRequests.count > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={crawlRequests.count}
+                  hasNextPage={!!crawlRequests.next}
+                  hasPreviousPage={!!crawlRequests.previous}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
 
       {/* Result Modal */}
-      <ResultModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        resultUrl={selectedResult || ''}
-      />
+      {selectedResult && (
+        <ResultModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedResult(null);
+          }}
+          result={selectedResult}
+        />
+      )}
     </div>
   );
 };

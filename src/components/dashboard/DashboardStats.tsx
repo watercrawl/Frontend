@@ -47,7 +47,7 @@ const DashboardStats: React.FC = () => {
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Crawls</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Crawl Requests</p>
               <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                 {data.total_crawls?.toLocaleString()}
               </p>
@@ -61,21 +61,7 @@ const DashboardStats: React.FC = () => {
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Running</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                {(data.total_crawls - data.finished_crawls)?.toLocaleString()}
-              </p>
-            </div>
-            <div className="text-gray-400 dark:text-gray-500">
-              <ArrowTrendingUpIcon className="h-5 w-5" />
-            </div>
-          </div>
-        </div>
-
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Documents</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Results</p>
               <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                 {data.total_documents?.toLocaleString()}
               </p>
@@ -91,8 +77,8 @@ const DashboardStats: React.FC = () => {
       <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">API Usage</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Last 7 days of activity</p>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Crawl Requests</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">All time</p>
           </div>
         </div>
         
