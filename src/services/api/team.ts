@@ -8,9 +8,17 @@ export interface TeamInvitation {
   created_at: string;
 }
 
-export const teamService = {
+export const teamApi = {
   async getCurrentTeam(): Promise<Team> {
     return api.get<Team>('/api/v1/user/teams/current/').then(({ data }) => data);
+  },
+
+  async listTeams(): Promise<Team[]> {
+    return api.get<Team[]>('/api/v1/user/teams/').then(({ data }) => data);
+  },
+
+  async createTeam(name: string): Promise<Team> {
+    return api.post<Team>('/api/v1/user/teams/', { name }).then(({ data }) => data);
   },
 
   async updateTeamName(name: string): Promise<Team> {

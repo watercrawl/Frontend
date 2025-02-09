@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import Loading from '../shared/Loading';
-import { authApi } from '../../services/api/authApi';
+import { authApi } from '../../services/api/auth';
 import { FormInput } from '../shared/FormInput';
 import toast from 'react-hot-toast';
 

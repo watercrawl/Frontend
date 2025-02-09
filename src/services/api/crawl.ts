@@ -1,20 +1,17 @@
 import { CrawlEvent, CrawlRequest } from '../../types/crawl';
 import api from './api';
 
-export const crawlService = {
+export const crawlRequestApi = {
   async createCrawlRequest(request: CrawlRequest) {
-    const { data } = await api.post<CrawlRequest>('/api/v1/core/crawl-requests/', request);
-    return data;
+    return api.post<CrawlRequest>('/api/v1/core/crawl-requests/', request).then(({ data }) => data);
   },
 
   async getCrawlRequest(uuid: string) {
-    const { data } = await api.get<CrawlRequest>(`/api/v1/core/crawl-requests/${uuid}/`);
-    return data;
+    return api.get<CrawlRequest>(`/api/v1/core/crawl-requests/${uuid}/`).then(({ data }) => data);
   },
 
   async downloadCrawlResult(id: string) {
-    const { data } = await api.get(`/api/v1/core/crawl-requests/${id}/download/`);
-    return data;
+    return api.get(`/api/v1/core/crawl-requests/${id}/download/`).then(({ data }) => data);
   },
 
   async cancelCrawl(id: string) {

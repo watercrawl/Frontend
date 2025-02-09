@@ -11,7 +11,7 @@ export function formatDuration(duration: string | null, startTime?: string): str
   let milliseconds = '00.00';
 
   // Calculate duration for ongoing processes
-  if (startTime) {
+  if (!duration && startTime) {
     const xduration = new Date().getTime() - new Date(startTime).getTime();
     const _seconds = Math.floor(xduration / 1000);
     const _minutes = Math.floor(_seconds / 60);

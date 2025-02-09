@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Tab } from '@headlessui/react';
 import { CrawlEvent, CrawlRequest, CrawlResult, CrawlState, PageOptions } from '../../types/crawl';
-import { crawlService } from '../../services/api/crawl';
-import { pluginsService } from '../../services/api/plugins'; // Import pluginsService
+import { crawlRequestApi } from '../../services/api/crawl';
+import { pluginsApi } from '../../services/api/plugins'; // Import pluginsService
 import { PageOptionsForm } from '../forms/PageOptionsForm';
 import { SpiderOptionsForm, SpiderOptions } from '../forms/SpiderOptionsForm';
 import { ResultsTable } from '../ResultsTable';
@@ -11,6 +11,7 @@ import PluginOptionsForm from './PluginOptionsForm';
 import { FormInput } from '../shared/FormComponents';
 import { ApiDocumentation } from '../playground/ApiDocumentation';
 import { JSONSchemaDefinition } from '../json-forms/types/schema';
+import { AxiosError } from 'axios';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -21,7 +22,11 @@ interface CrawlFormProps {
   initialRequest: CrawlRequest | null;
 }
 
-export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialRequest}) => {
+interface Error {
+  [key: string]: string | string[] | Error;
+}
+
+export const CrawlForm: React.FC<CrawlFormProps> = ({ showSpiderOptions, initialRequest }) => {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
@@ -29,6 +34,7 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
   const [currentRequest, setCurrentRequest] = useState<CrawlRequest | null>(null);
   const [formErrors, setFormErrors] = useState<{
     plugin?: boolean;
+    errors?: Error
   }>({});
   const [pluginSchema, setPluginSchema] = useState<JSONSchemaDefinition | null>(null);
 
@@ -49,11 +55,11 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
   const [spiderOptions, setSpiderOptions] = useState<SpiderOptions>({
     maxDepth: '1',
     pageLimit: '1',
-    allowedDomains: '',
-    excludePaths: '',
-    includePaths: '',
+    allowedDomains: [],
+    excludePaths: [],
+    includePaths: [],
   });
-  
+
   const [crawlStatus, setCrawlStatus] = useState<CrawlState>({
     request: null,
     results: [],
@@ -68,15 +74,15 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
       setUrl(initialRequest.url);
       if (initialRequest.options) {
         const { spider_options, page_options, plugin_options } = initialRequest.options;
-        
+
         // Set spider options
         if (spider_options) {
           setSpiderOptions({
             maxDepth: spider_options.max_depth?.toString() || '1',
             pageLimit: spider_options.page_limit?.toString() || '1',
-            allowedDomains: spider_options.allowed_domains?.join(',') || '',
-            excludePaths: spider_options.exclude_paths?.join(',') || '',
-            includePaths: spider_options.include_paths?.join(',') || '',
+            allowedDomains: spider_options.allowed_domains || [],
+            excludePaths: spider_options.exclude_paths || [],
+            includePaths: spider_options.include_paths || [],
           });
         }
 
@@ -117,16 +123,16 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
 
   const updateRequest = () => {
     if (!url) return;
-    
+
     const request = {
       url,
       options: {
         spider_options: {
           max_depth: parseInt(spiderOptions.maxDepth),
           page_limit: parseInt(spiderOptions.pageLimit),
-          allowed_domains: spiderOptions.allowedDomains.split(',').map(domain => domain.trim()).filter(Boolean),
-          exclude_paths: spiderOptions.excludePaths.split(',').map(path => path.trim()).filter(Boolean),
-          include_paths: spiderOptions.includePaths.split(',').map(path => path.trim()).filter(Boolean),
+          allowed_domains: spiderOptions.allowedDomains,
+          exclude_paths: spiderOptions.excludePaths,
+          include_paths: spiderOptions.includePaths,
         },
         page_options: {
           exclude_tags: pageOptions.exclude_tags,
@@ -155,7 +161,7 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
   useEffect(() => {
     const fetchSchema = async () => {
       try {
-        const schemaData = await pluginsService.getPluginSchema();
+        const schemaData = await pluginsApi.getPluginSchema();
         setPluginSchema(schemaData);
       } catch (error) {
         console.error('Error fetching plugin schema:', error);
@@ -227,54 +233,27 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
     setCrawlStatus({ request: null, results: [], isExpanded: true });
 
     try {
-    //   const request = {
-    //     url,
-    //     options: {
-    //       spider_options: {
-    //         max_depth: parseInt(spiderOptions.maxDepth),
-    //         page_limit: parseInt(spiderOptions.pageLimit),
-    //         allowed_domains: spiderOptions.allowedDomains.split(',').map(domain => domain.trim()).filter(Boolean),
-    //         exclude_paths: spiderOptions.excludePaths.split(',').map(path => path.trim()).filter(Boolean),
-    //         include_paths: spiderOptions.includePaths.split(',').map(path => path.trim()).filter(Boolean),
-    //       },
-    //       page_options: {
-    //         exclude_tags: pageOptions.exclude_tags,
-    //         include_tags: pageOptions.include_tags,
-    //         wait_time: pageOptions.wait_time,
-    //         only_main_content: pageOptions.only_main_content,
-    //         include_html: pageOptions.include_html,
-    //         include_links: pageOptions.include_links,
-    //         timeout: pageOptions.timeout,
-    //         accept_cookies_selector: pageOptions.accept_cookies_selector || undefined,
-    //         locale: pageOptions.locale || undefined,
-    //         extra_headers: pageOptions.extra_headers,
-    //         actions: pageOptions.actions || []
-    //       },
-    //       plugin_options: getActivePlugins(pluginOptions)
-    //     }
-    //   } as CrawlRequest;
+      const response = await crawlRequestApi.createCrawlRequest(currentRequest as CrawlRequest);
 
-    //   setCurrentRequest(request);
-
-      const response = await crawlService.createCrawlRequest(currentRequest as CrawlRequest);
-      
       // Switch to Results tab
       setSelectedTab(tabs.findIndex(tab => tab.name === 'Results'));
-      
-      await crawlService.subscribeToStatus(
+
+      await crawlRequestApi.subscribeToStatus(
         response.uuid,
         handleCrawlEvent,
         () => setIsLoading(false)
       );
 
-      // Scroll to results after a short delay to ensure the component has rendered
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
 
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to start crawling');
+
+      if (error instanceof AxiosError) {
+        toast.error(error?.response?.data?.message);
+        setFormErrors(prev => ({ ...prev, errors: error?.response?.data?.errors }));
+      } else {
+        toast.error('Failed to start crawling');
+      }
       setIsLoading(false);
     }
   };
@@ -283,7 +262,7 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
     if (!crawlStatus.request?.uuid) return;
 
     try {
-      await crawlService.cancelCrawl(crawlStatus.request.uuid);
+      await crawlRequestApi.cancelCrawl(crawlStatus.request.uuid);
       toast.success('Crawl cancelled successfully');
       setIsLoading(false);
       setCrawlStatus(prev => ({
@@ -297,44 +276,44 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
   };
 
   const tabs = [
-    ...(showSpiderOptions ? [{ 
-      name: 'Spider Options', 
+    ...(showSpiderOptions ? [{
+      name: 'Spider Options',
       content: (
-        <SpiderOptionsForm 
-          options={spiderOptions} 
+        <SpiderOptionsForm
+          options={spiderOptions}
           onChange={handleSpiderOptionsChange}
         />
-      ) 
+      )
     }] : []),
-    { 
-      name: 'Page Options', 
+    {
+      name: 'Page Options',
       content: (
-        <PageOptionsForm 
-          options={pageOptions} 
+        <PageOptionsForm
+          options={pageOptions}
           onChange={handlePageOptionsChange}
         />
-      ) 
+      )
     },
-    { 
-      name: 'Plugin Options', 
+    {
+      name: 'Plugin Options',
       content: (
-        <PluginOptionsForm 
-          onChange={handlePluginOptionsChange} 
+        <PluginOptionsForm
+          onChange={handlePluginOptionsChange}
           onValidation={handlePluginValidation}
           schema={pluginSchema}
           value={pluginOptions}
         />
-      ) 
+      )
     },
-    { 
-      name: 'API Documentation', 
-      content: <ApiDocumentation request={currentRequest} /> 
+    {
+      name: 'API Documentation',
+      content: <ApiDocumentation request={currentRequest} />
     },
     {
       name: 'Results',
       content: crawlStatus.request ? (
         <div ref={resultsRef}>
-          <ResultsTable 
+          <ResultsTable
             request={crawlStatus.request}
             results={crawlStatus.results}
             isExpanded={crawlStatus.isExpanded}
@@ -368,7 +347,7 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
               Enter the URL of the website you want to crawl. Make sure to include the protocol (http:// or https://).
             </p>
           </div>
-          <div className="w-full md:w-auto">
+          <div className="w-full pt-1">
             {crawlStatus.request?.status === 'running' ? (
               <button
                 type="button"
@@ -427,11 +406,10 @@ export const CrawlForm: React.FC<CrawlFormProps> = ({showSpiderOptions, initialR
             {tabs.map((tab, idx) => (
               <Tab.Panel
                 key={idx}
-                className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm ${
-                  (tab.name === 'Plugin Options' && formErrors.plugin)
-                    ? 'ring-2 ring-red-500'
-                    : ''
-                }`}
+                className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm ${(tab.name === 'Plugin Options' && formErrors.plugin)
+                  ? 'ring-2 ring-red-500'
+                  : ''
+                  }`}
               >
                 {tab.content}
               </Tab.Panel>

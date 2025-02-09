@@ -22,12 +22,26 @@ export const AuthLayout: React.FC = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold">
-          <span className="text-3xl">💦 </span>
-          <span className={`text-2xl font-semibold ${
-            theme === 'dark' 
-              ? 'bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent'
-              : 'bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent'
-          }`}>
+          <span>
+            {theme === 'dark' ? (
+              <img
+                src="/logo-dark.svg"
+                alt="WaterCrawl"
+                className="inline-block mx-2"
+                width={42}
+                height={42}
+              />
+            ) : (
+              <img
+                src="/logo.svg"
+                alt="WaterCrawl"
+                className="inline-block mx-2"
+                width={42}
+                height={42}
+              />
+            )}
+          </span>
+          <span className={`text-2xl font-semibold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent dark:from-blue-200 dark:to-blue-100`}>
             WaterCrawl
           </span>
         </h2>

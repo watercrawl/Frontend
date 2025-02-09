@@ -2,7 +2,7 @@ import api from './api';
 import { Settings } from '../../types/settings';
 
 export const settingsApi = {
-    getSettings(): Promise<Settings> {
+    async getSettings(): Promise<Settings> {
         return api.get<Settings>(
             '/api/v1/common/settings'
         ).then(({ data }) => data);

@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { formatDistanceToNow } from 'date-fns';
-import { apiKeysService } from '../../services/api/apiKeys';
+import { apiKeysApi } from '../../services/api/apiKeys';
 import { ApiKey } from '../../types/apiKeys';
 import { toast } from 'react-hot-toast';
 import { Pagination } from '../../components/shared/Pagination';
@@ -31,7 +31,7 @@ const ApiKeysPage: React.FC = () => {
   const fetchApiKeys = async (page: number) => {
     try {
       setLoading(true);
-      const data = await apiKeysService.list(page);
+      const data = await apiKeysApi.list(page);
       setApiKeys(data.results);
       setTotalPages(Math.ceil(data.count / 10));
     } catch (error) {
@@ -53,7 +53,7 @@ const ApiKeysPage: React.FC = () => {
       return;
     }
     try {
-      const newKey = await apiKeysService.create(newKeyName);
+      const newKey = await apiKeysApi.create(newKeyName);
       setApiKeys(prev => [newKey, ...prev]);
       setNewKeyName('');
       setIsModalOpen(false);
@@ -69,7 +69,7 @@ const ApiKeysPage: React.FC = () => {
   const deleteApiKey = async (uuid: string) => {
     try {
       setDeletingKey(uuid);
-      await apiKeysService.delete(uuid);
+      await apiKeysApi.delete(uuid);
       setApiKeys(prev => prev.filter(key => key.uuid !== uuid));
       toast.success('API key deleted successfully');
     } catch (error) {

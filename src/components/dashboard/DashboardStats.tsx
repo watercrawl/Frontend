@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
-import { usageService } from '../../services/api/usage';
+import { usageApi } from '../../services/api/usage';
 import { UsageResponse } from '../../types/common';
 
 const DashboardStats: React.FC = () => {
@@ -12,7 +12,7 @@ const DashboardStats: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await usageService.getUsageStats();
+        const response = await usageApi.getUsageStats();
         setData(response);
       } catch (error) {
         console.error('Error fetching usage data:', error);

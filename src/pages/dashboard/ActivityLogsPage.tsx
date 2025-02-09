@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ResultModal from '../../components/ResultModal';
-import { ActivityLogExpandedRow } from '../../components/activity-logs/ActivityLogExpandedRow';
 import { CrawlRequestCard } from '../../components/shared/CrawlRequestCard';
 import { EmptyState } from '../../components/activity-logs/EmptyState';
 import { PaginatedResponse } from '../../types/common';
 import { CrawlRequest, CrawlResult } from '../../types/crawl';
-import { activityLogsService } from '../../services/api/activityLogs';
+import { activityLogsApi } from '../../services/api/activityLogs';
 import { useIsTabletOrMobile } from '../../hooks/useMediaQuery';
 import { Pagination } from '../../components/shared/Pagination';
-import { ChevronUpIcon, ChevronDownIcon, ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { formatDuration } from '../../utils/formatters';
@@ -18,11 +17,8 @@ import { formatDuration } from '../../utils/formatters';
 const ActivityLogsPage: React.FC = () => {
   const navigate = useNavigate();
   const [crawlRequests, setCrawlRequests] = useState<PaginatedResponse<CrawlRequest> | null>(null);
-  const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
-  const [results, setResults] = useState<{ [key: string]: PaginatedResponse<CrawlResult> }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [loadingResults, setLoadingResults] = useState<{ [key: string]: boolean }>({});
   const [selectedResult, setSelectedResult] = useState<CrawlResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,7 +27,7 @@ const ActivityLogsPage: React.FC = () => {
   const fetchCrawlRequests = async (page: number) => {
     try {
       setLoading(true);
-      const data = await activityLogsService.listCrawlRequests(page);
+      const data = await activityLogsApi.listCrawlRequests(page);
       setCrawlRequests(data);
     } catch (error) {
       console.error('Error fetching crawl requests:', error);
@@ -40,55 +36,15 @@ const ActivityLogsPage: React.FC = () => {
     }
   };
 
-  const fetchCrawlResults = async (requestId: string, page: number = 1) => {
-    if (!requestId) {
-      console.error('Request ID is undefined');
-      return;
-    }
-
-    setLoadingResults(prev => ({ ...prev, [requestId]: true }));
-
-    try {
-      const data = await activityLogsService.getCrawlResults(requestId, page);
-      setResults(prev => ({
-        ...prev,
-        [requestId]: data
-      }));
-    } catch (error) {
-      console.error('Error fetching crawl results:', error);
-      setResults(prev => ({
-        ...prev,
-        [requestId]: { count: 0, next: null, previous: null, results: [] }
-      }));
-    } finally {
-      setLoadingResults(prev => ({ ...prev, [requestId]: false }));
-    }
-  };
-
   useEffect(() => {
     fetchCrawlRequests(currentPage);
   }, [currentPage]);
 
-  const handleRowClick = async (requestId: string) => {
-    if (!requestId) {
-      console.error('Request ID is undefined');
-      return;
-    }
-
-    if (expandedRequest === requestId) {
-      setExpandedRequest(null);
-    } else {
-      setExpandedRequest(requestId);
-      if (!results[requestId]) {
-        await fetchCrawlResults(requestId);
-      }
-    }
-  };
 
   const handleDownload = async (e: React.MouseEvent, requestId: string) => {
     e.stopPropagation();
     try {
-      const blob = await activityLogsService.downloadResults(requestId);
+      const blob = await activityLogsApi.downloadResults(requestId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -215,34 +171,9 @@ const ActivityLogsPage: React.FC = () => {
                                       >
                                         <EyeIcon className="h-5 w-5" />
                                       </button>
-                                      <button
-                                        onClick={() => handleRowClick(request.uuid)}
-                                        className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
-                                        title={expandedRequest === request.uuid ? "Collapse" : "Expand"}
-                                      >
-                                        {expandedRequest === request.uuid ? (
-                                          <ChevronUpIcon className="h-5 w-5" />
-                                        ) : (
-                                          <ChevronDownIcon className="h-5 w-5" />
-                                        )}
-                                      </button>
                                     </div>
                                   </td>
                                 </tr>
-                                {expandedRequest === request.uuid && (
-                                  <tr>
-                                    <td colSpan={6}>
-                                      <ActivityLogExpandedRow
-                                        results={results[request.uuid]?.results || []}
-                                        isLoading={loadingResults[request.uuid]}
-                                        onPreviewClick={(result: CrawlResult) => {
-                                          setSelectedResult(result);
-                                          setIsModalOpen(true);
-                                        }}
-                                      />
-                                    </td>
-                                  </tr>
-                                )}
                               </React.Fragment>
                             ))}
                           </tbody>

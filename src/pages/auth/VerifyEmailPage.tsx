@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../../services/api/authApi';
+import { authApi } from '../../services/api/auth';
 import { AuthService } from '../../services/authService';
 import { TeamService } from '../../services/teamService';
 import Loading from '../../components/shared/Loading';

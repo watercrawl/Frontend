@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-02-09
+
+### Added
+- New subscription and plan-related API endpoints
+- Shared components for usage statistics and subscription management
+- Enterprise mode flag in settings
+- New team properties (is_default)
+- Logo SVG files for dark and light modes
+
+### Changed
+- Improved API documentation with more detailed endpoint descriptions
+- Refactored API services to use more consistent naming and implementation
+- Updated usage charts with loading state and new grid layout
+- Migrated from `tailwind.config.js` to `tailwind.config.mjs`
+- Updated formatters and utility functions
+
+### Refactored
+- Consolidated API service files
+- Simplified API call implementations
+- Improved error handling and response parsing
+
 ## [0.2.0] - 2025-01-15
 
 ### Added
@@ -98,3 +119,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.0.2]: https://github.com/watercrawl/frontend/releases/tag/0.0.2
 [0.1.0]: https://github.com/watercrawl/frontend/releases/tag/0.1.0
 [0.2.0]: https://github.com/watercrawl/frontend/releases/tag/0.2.0
+[0.3.0]: https://github.com/watercrawl/frontend/releases/tag/0.3.0

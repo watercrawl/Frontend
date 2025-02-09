@@ -1,4 +1,5 @@
 export interface Settings {
+    is_enterprise_mode_active: boolean;
     github_client_id?: string;
     google_client_id?: string;
     is_login_active: boolean;

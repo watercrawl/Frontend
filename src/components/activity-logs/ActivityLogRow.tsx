@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronDownIcon, ChevronRightIcon, ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { CrawlRequest } from '../../types/crawl';
-import { activityLogsService } from '../../services/api/activityLogs';
+import { activityLogsApi } from '../../services/api/activityLogs';
 import { toast } from 'react-hot-toast';
 import { StatusBadge } from '../shared/StatusBadge';
 
@@ -28,7 +28,7 @@ export const ActivityLogRow: React.FC<ActivityLogRowProps> = ({
     if (!request.uuid) return;
     
     try {
-      const blob = await activityLogsService.downloadResults(request.uuid);
+      const blob = await activityLogsApi.downloadResults(request.uuid);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

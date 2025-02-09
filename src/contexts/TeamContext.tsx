@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Team } from '../types/team';
-import { teamApi } from '../services/api/teamApi';
+import { teamApi } from '../services/api/team';
 import { TeamService } from '../services/teamService';
+import { CurrentSubscription } from '../types/subscription';
+import subscriptionApi from '../services/api/subscription';
+import { AxiosError } from 'axios';
 
 interface TeamContextType {
   currentTeam: Team | null;
@@ -11,12 +14,17 @@ interface TeamContextType {
   setCurrentTeam: (team: Team) => Promise<void>;
   refreshTeams: () => Promise<void>;
   createTeam: (name: string) => Promise<Team>;
+  currentSubscription: CurrentSubscription | null;
+  refreshCurrentSubscription: () => Promise<void>;
+  showSubscriptionBanner: boolean;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTeam, setCurrentTeamState] = useState<Team | null>(null);
+  const [showSubscriptionBanner, setShowSubscriptionBanner] = useState(false);
+  const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null)
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -28,14 +36,30 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         teamApi.getCurrentTeam(),
         teamApi.listTeams(),
       ]);
-      setCurrentTeamState(currentTeamResponse.data);
-      setTeams(teamsResponse.data);
+      setCurrentTeamState(currentTeamResponse);
+      setTeams(teamsResponse)
     } catch (err) {
       setError(err as Error);
     } finally {
       setLoading(false);
     }
   };
+
+  const refreshCurrentSubscription = async () => {
+    try {
+      setShowSubscriptionBanner(false);
+      const data = await subscriptionApi.currentSubscription();
+      setCurrentSubscription(data);
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 404 || err.response?.status === 403) {
+          setCurrentSubscription(null);
+          setShowSubscriptionBanner(true);
+        }
+      }
+      setError(err as Error);
+    }
+  }
 
   const setCurrentTeam = async (team: Team) => {
     try {
@@ -49,9 +73,9 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createTeam = async (name: string) => {
     try {
-      const response = await teamApi.createTeam(name);
+      const data = await teamApi.createTeam(name);
       await refreshTeams();
-      return response.data;
+      return data;
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -61,6 +85,13 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     refreshTeams();
   }, []);
+
+  useEffect(() => {
+    if (!currentTeam) return;
+    setCurrentSubscription(null);
+    setShowSubscriptionBanner(false);
+    refreshCurrentSubscription();
+  }, [currentTeam]);
 
   return (
     <TeamContext.Provider
@@ -72,6 +103,9 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentTeam,
         refreshTeams,
         createTeam,
+        currentSubscription,
+        refreshCurrentSubscription,
+        showSubscriptionBanner
       }}
     >
       {children}

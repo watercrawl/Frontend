@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Tab } from '@headlessui/react';
-import { teamService } from '../../services/api/team';
+import { teamApi } from '../../services/api/team';
 import { UserCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Team, TeamMember } from '../../types/team';
 import toast from 'react-hot-toast';
 import { TeamInvitationsList, TeamInvitationsListRef } from '../../components/settings/TeamInvitationsList';
 import { useTeam } from '../../contexts/TeamContext';
+import { useSettings } from '../../contexts/SettingsProvider';
+import { SubscriptionStatusCard } from '../../components/shared/SubscriptionStatusCard';
+import { BillingManagementCard } from '../../components/shared/BillingManagementCard';
+import { SubscriptionsList } from '../../components/shared/SubscriptionsList';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -27,6 +31,28 @@ const SettingsPage: React.FC = () => {
   const [newTeamName, setNewTeamName] = useState('');
   const invitationsListRef = useRef<TeamInvitationsListRef>(null);
   const { refreshTeams } = useTeam();
+  const { settings } = useSettings();
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+  useEffect(() => {
+    // Check for #billing hash on initial load
+    const handleHashChange = () => {
+      if (window.location.hash === '#billing') {
+        setSelectedTabIndex(1);
+      }
+    };
+
+    // Initial check
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Cleanup listener
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   useEffect(() => {
     fetchTeam();
@@ -39,7 +65,7 @@ const SettingsPage: React.FC = () => {
   const fetchTeam = async () => {
     try {
       setLoading(true);
-      const data = await teamService.getCurrentTeam();
+      const data = await teamApi.getCurrentTeam();
       setTeam(data);
       setNewTeamName(data.name);
     } catch (error) {
@@ -52,7 +78,7 @@ const SettingsPage: React.FC = () => {
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const data = await teamService.listMembers(currentPage);
+      const data = await teamApi.listMembers(currentPage);
       setMembers(data.results);
       setTotalPages(Math.ceil(data.count / 10));
     } catch (error) {
@@ -68,7 +94,7 @@ const SettingsPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const updatedTeam = await teamService.updateTeamName(newTeamName);
+      const updatedTeam = await teamApi.updateTeamName(newTeamName);
       setTeam(updatedTeam);
       setEditingName(false);
       await refreshTeams(); // Refresh teams list in context
@@ -85,7 +111,7 @@ const SettingsPage: React.FC = () => {
     if (!newMemberEmail.trim()) return;
 
     setLoading(true);
-    teamService
+    teamApi
       .inviteMember(newMemberEmail, newMemberRole)
       .then(() => {
         fetchMembers(); // Refresh members list
@@ -112,7 +138,7 @@ const SettingsPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await teamService.removeMember(memberId);
+      await teamApi.removeMember(memberId);
       await Promise.all([
         fetchMembers(), // Refresh members list
         refreshTeams(), // Refresh teams in context
@@ -131,7 +157,7 @@ const SettingsPage: React.FC = () => {
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Settings</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your team and account settings.</p>
 
-        <Tab.Group>
+        <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
           <Tab.List className="flex space-x-1 mt-8 border-b border-gray-200 dark:border-gray-700">
             <Tab
               className={({ selected }) =>
@@ -146,19 +172,21 @@ const SettingsPage: React.FC = () => {
             >
               Team
             </Tab>
-            <Tab
-              className={({ selected }) =>
-                classNames(
-                  'px-4 py-2.5 text-sm font-medium leading-5 transition-all duration-200',
-                  'focus:outline-none',
-                  selected
-                    ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                )
-              }
-            >
-              Billing
-            </Tab>
+            {settings?.is_enterprise_mode_active && (
+              <Tab
+                className={({ selected }) =>
+                  classNames(
+                    'px-4 py-2.5 text-sm font-medium leading-5 transition-all duration-200',
+                    'focus:outline-none',
+                    selected
+                      ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  )
+                }
+              >
+                Billing
+              </Tab>
+            )}
           </Tab.List>
 
           <Tab.Panels className="mt-8">
@@ -309,15 +337,15 @@ const SettingsPage: React.FC = () => {
               </div>
             </Tab.Panel>
 
-            <Tab.Panel>
-              <div>
-                <h3 className="text-base font-medium text-gray-900 dark:text-white">Billing Information</h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Manage your subscription and billing details.
-                </p>
-                <p className="mt-4 text-gray-600 dark:text-gray-300">Billing settings coming soon...</p>
-              </div>
-            </Tab.Panel>
+            {settings?.is_enterprise_mode_active && (
+              <Tab.Panel>
+                <div className="space-y-6">
+                  <SubscriptionStatusCard />
+                  <BillingManagementCard />
+                  <SubscriptionsList />
+                </div>
+              </Tab.Panel>
+            )}
           </Tab.Panels>
         </Tab.Group>
       </div>

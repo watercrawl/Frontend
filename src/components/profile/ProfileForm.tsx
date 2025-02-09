@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { profileApi } from '../../services/api/profileApi';
+import { profileApi } from '../../services/api/profile';
 import toast from 'react-hot-toast';
 import { FormInput } from '../shared/FormInput';
 import Loading from '../shared/Loading';

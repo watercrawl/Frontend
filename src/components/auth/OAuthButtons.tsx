@@ -4,7 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import GithubOAuth from './GithubOAuth';
 import GoogleOAuth from './GoogleOAuth';
 import { useSettings } from '../../contexts/SettingsProvider';
-import { oauthApi } from '../../services/api/oauthApi';
+import { oauthApi } from '../../services/api/oauth';
 import { AuthService } from '../../services/authService';
 import { ValidationMessage } from '../shared/ValidationMessage';
 import { TeamService } from '../../services/teamService';

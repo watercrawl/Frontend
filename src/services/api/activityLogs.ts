@@ -2,25 +2,22 @@ import { PaginatedResponse } from '../../types/common';
 import { CrawlRequest, CrawlResult } from '../../types/crawl';
 import api from './api';
 
-export const activityLogsService = {
+export const activityLogsApi = {
   async listCrawlRequests(page: number): Promise<PaginatedResponse<CrawlRequest>> {
-    const { data } = await api.get<PaginatedResponse<CrawlRequest>>(`/api/v1/core/crawl-requests/`, {
+    return api.get<PaginatedResponse<CrawlRequest>>(`/api/v1/core/crawl-requests/`, {
       params: { page }
-    });
-    return data;
+    }).then(({ data }) => data);
   },
 
   async getCrawlRequest(requestId: string): Promise<CrawlRequest> {
-    const { data } = await api.get<CrawlRequest>(`/api/v1/core/crawl-requests/${requestId}/`);
-    return data;
+    return api.get<CrawlRequest>(`/api/v1/core/crawl-requests/${requestId}/`).then(({ data }) => data);
   },
 
   async getCrawlResults(requestId: string, page: number = 1): Promise<PaginatedResponse<CrawlResult>> {
-    const { data } = await api.get<PaginatedResponse<CrawlResult>>(
+    return api.get<PaginatedResponse<CrawlResult>>(
       `/api/v1/core/crawl-requests/${requestId}/results/`,
-      { params: { page } }
-    );
-    return data;
+      { params: { page, page_size: 25 } }
+    ).then(({ data }) => data);
   },
 
   async downloadResults(requestId: string): Promise<Blob> {

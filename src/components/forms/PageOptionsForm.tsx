@@ -3,6 +3,7 @@ import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
 import { PageOptions } from '../../types/crawl';
 import { OptionGroup, FormInput, InfoTooltip } from '../shared/FormComponents';
+import { Button } from '../shared/Button';
 
 interface PageOptionsFormProps {
   options: PageOptions;
@@ -49,6 +50,8 @@ const ToggleOption: React.FC<ToggleOptionProps> = ({ label, description, checked
 export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onChange }) => {
   const [newHeaderKey, setNewHeaderKey] = useState('');
   const [newHeaderValue, setNewHeaderValue] = useState('');
+  const [newExcludeTag, setNewExcludeTag] = useState('');
+  const [newIncludeTag, setNewIncludeTag] = useState('');
 
   const handleInputChange = (field: keyof PageOptions, value: string | boolean | string[]) => {
     if (field === 'exclude_tags' || field === 'include_tags') {
@@ -78,6 +81,32 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
   const handleRemoveHeader = (key: string) => {
     const { [key]: _, ...remainingHeaders } = options.extra_headers || {};
     onChange({ extra_headers: remainingHeaders });
+  };
+
+  const handleAddExcludeTag = () => {
+    if (newExcludeTag.trim()) {
+      const updatedTags = [...options.exclude_tags, newExcludeTag.trim()];
+      onChange({ exclude_tags: updatedTags });
+      setNewExcludeTag('');
+    }
+  };
+
+  const handleRemoveExcludeTag = (tagToRemove: string) => {
+    const updatedTags = options.exclude_tags.filter(tag => tag !== tagToRemove);
+    onChange({ exclude_tags: updatedTags });
+  };
+
+  const handleAddIncludeTag = () => {
+    if (newIncludeTag.trim()) {
+      const updatedTags = [...options.include_tags, newIncludeTag.trim()];
+      onChange({ include_tags: updatedTags });
+      setNewIncludeTag('');
+    }
+  };
+
+  const handleRemoveIncludeTag = (tagToRemove: string) => {
+    const updatedTags = options.include_tags.filter(tag => tag !== tagToRemove);
+    onChange({ include_tags: updatedTags });
   };
 
   return (
@@ -122,12 +151,47 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
                 </label>
                 <InfoTooltip content="Specify CSS selectors for elements to exclude from the crawl (e.g., script, .ad, #footer)" />
               </div>
-              <FormInput
-                label=""
-                value={options.exclude_tags.join(', ')}
-                onChange={(value) => handleInputChange('exclude_tags', value)}
-                placeholder="script, .ad, #footer"
-              />
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2 flex space-x-2">
+                    <FormInput
+                      label=""
+                      value={newExcludeTag}
+                      onChange={setNewExcludeTag}
+                      placeholder="CSS selector (e.g., header, footer, .ad, #footer)"
+                      className="flex-grow"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleAddExcludeTag}
+                      disabled={!newExcludeTag.trim()}
+                      variant="outline"
+                      size="sm"
+                      className="!px-3 !py-2 h-[40px] mt-1"
+                    >
+                      <PlusIcon className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {options.exclude_tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {options.exclude_tags.map((tag) => (
+                    <span 
+                      key={tag} 
+                      className="inline-flex items-center bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs"
+                    >
+                      {tag}
+                      <button 
+                        onClick={() => handleRemoveExcludeTag(tag)}
+                        className="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <XMarkIcon className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -137,12 +201,47 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
                 </label>
                 <InfoTooltip content="Specify CSS selectors for elements to include in the crawl (e.g., article, .content, #main)" />
               </div>
-              <FormInput
-                label=""
-                value={options.include_tags.join(', ')}
-                onChange={(value) => handleInputChange('include_tags', value)}
-                placeholder="article, .content, #main"
-              />
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2 flex space-x-2">
+                    <FormInput
+                      label=""
+                      value={newIncludeTag}
+                      onChange={setNewIncludeTag}
+                      placeholder="CSS selector (e.g., article, .content, #main)"
+                      className="flex-grow"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleAddIncludeTag}
+                      disabled={!newIncludeTag.trim()}
+                      variant="outline"
+                      size="md"
+                      className="!px-3 !py-2 h-[40px] mt-1"
+                    >
+                      <PlusIcon className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {options.include_tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {options.include_tags.map((tag) => (
+                    <span 
+                      key={tag} 
+                      className="inline-flex items-center bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs"
+                    >
+                      {tag}
+                      <button 
+                        onClick={() => handleRemoveIncludeTag(tag)}
+                        className="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <XMarkIcon className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </OptionGroup>
@@ -324,15 +423,17 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
                   />
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleAddHeader}
                 disabled={!newHeaderKey || !newHeaderValue}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="outline"
+                size="md"
+                className="!px-3 !py-2 w-full"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Add Header
-              </button>
+              </Button>
             </div>
           </div>
         </OptionGroup>

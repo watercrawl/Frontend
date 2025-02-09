@@ -13,6 +13,7 @@ export interface TeamMember {
 export interface Team {
   uuid: string;
   name: string;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 }

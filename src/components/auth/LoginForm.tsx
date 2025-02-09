@@ -7,12 +7,14 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { FormInput } from '../shared/FormInput';
 import { ValidationMessage } from '../shared/ValidationMessage';
 import { OAuthButtons } from './OAuthButtons';
-import { authApi } from '../../services/api/authApi';
+import { authApi } from '../../services/api/auth';
 import type { ApiError } from '../../types/common';
 import { AuthService } from '../../services/authService';
 import { useSettings } from '../../contexts/SettingsProvider';
 import Loading from '../shared/Loading';
 import { TeamService } from '../../services/teamService';
+import { AxiosError } from 'axios';
+import { EmailVerificationPopup } from '../EmailVerificationPopup';
 
 const schema = yup.object({
   email: yup
@@ -33,6 +35,8 @@ export const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showEmailVerificationPopup, setShowEmailVerificationPopup] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const navigate = useNavigate();
 
   const methods = useForm<LoginFormData>({
@@ -46,6 +50,7 @@ export const LoginForm: React.FC = () => {
   const onSubmitHandler = handleSubmit((data: LoginFormData) => {
     setIsLoading(true);
     setError(null);
+    setUserEmail(data.email);
 
     authApi.login(data)
       .then((response) => {
@@ -53,29 +58,12 @@ export const LoginForm: React.FC = () => {
         AuthService.getInstance().setTokens(response.access, response.refresh);
         navigate('/dashboard');
       })
-      .catch((err: ApiError) => {
-        // Handle API error response
-        if (err.errors) {
-          // Set field-specific errors
-          Object.entries(err.errors).forEach(([field, messages]) => {
-            if (field !== 'non_field_errors') {
-              methods.setError(field as keyof LoginFormData, {
-                type: 'manual',
-                message: Array.isArray(messages) ? messages[0] : messages,
-              });
-            }
-          });
-
-          // Set general error message if present
-          if (err.errors.non_field_errors) {
-            setError(err.errors.non_field_errors[0]);
-          }
-        } else if (err.message) {
-          // Set general error message
-          setError(err.message);
-        } else {
-          // Fallback error message
-          setError('An error occurred during login. Please try again.');
+      .catch((err: AxiosError<ApiError>) => {
+        if (err.response?.status === 400) {
+          setError(err.response?.data?.errors?.email?.toLocaleString() || 'An error occurred during login. Please try again.');
+        }
+        if (err.response?.status === 403) {
+          setShowEmailVerificationPopup(true);
         }
       })
       .finally(() => {
@@ -190,6 +178,12 @@ export const LoginForm: React.FC = () => {
           }
         </div>
       </div>
+      {showEmailVerificationPopup && (
+        <EmailVerificationPopup 
+          email={userEmail} 
+          onClose={() => setShowEmailVerificationPopup(false)} 
+        />
+      )}
     </FormProvider>
   );
 };

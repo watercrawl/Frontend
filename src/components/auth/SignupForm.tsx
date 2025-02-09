@@ -7,7 +7,7 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { FormInput } from '../shared/FormInput';
 import { ValidationMessage } from '../shared/ValidationMessage';
 import { OAuthButtons } from './OAuthButtons';
-import { authApi } from '../../services/api/authApi';
+import { authApi } from '../../services/api/auth';
 
 const passwordStrengthRegex = {
   hasNumber: /\d/,

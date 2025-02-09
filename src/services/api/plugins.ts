@@ -1,8 +1,7 @@
 import api from './api';
 
-export const pluginsService = {
+export const pluginsApi = {
   async getPluginSchema() {
-    const { data } = await api.get('/api/v1/core/plugins/schema');
-    return data;
+    return api.get('/api/v1/core/plugins/schema').then(({data}) => data);
   },
 };

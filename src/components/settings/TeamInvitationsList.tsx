@@ -2,7 +2,7 @@ import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import Loading from '../shared/Loading';
-import { TeamInvitation, teamService } from '../../services/api/team';
+import { TeamInvitation, teamApi } from '../../services/api/team';
 import { EnvelopeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export interface TeamInvitationsListRef {
@@ -15,7 +15,7 @@ export const TeamInvitationsList = forwardRef<TeamInvitationsListRef>((_, ref) =
 
   const loadInvitations = async () => {
     try {
-      const data = await teamService.getInvitations();
+      const data = await teamApi.getInvitations();
       setInvitations(data);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load invitations');

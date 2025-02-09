@@ -4,8 +4,8 @@ import { ArrowLeftIcon, ArrowDownTrayIcon, ChevronDownIcon, ChevronRightIcon, Ar
 import { formatDistanceToNow } from 'date-fns';
 import { CrawlRequest, CrawlResult, CrawlEvent } from '../../types/crawl';
 import { PaginatedResponse } from '../../types/common';
-import { activityLogsService } from '../../services/api/activityLogs';
-import { crawlService } from '../../services/api/crawl';
+import { activityLogsApi } from '../../services/api/activityLogs';
+import { crawlRequestApi } from '../../services/api/crawl';
 import { ActivityLogResultCard } from '../../components/activity-logs/ActivityLogResultCard';
 import ResultModal from '../../components/ResultModal';
 import { toast } from 'react-hot-toast';
@@ -19,7 +19,7 @@ const CrawlRequestDetailPage: React.FC = () => {
   const [request, setRequest] = useState<CrawlRequest | null>(null);
   const [results, setResults] = useState<PaginatedResponse<CrawlResult> | null>(null);
   const [allResults, setAllResults] = useState<CrawlResult[]>([]);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedResult, setSelectedResult] = useState<CrawlResult | null>(null);
@@ -27,6 +27,7 @@ const CrawlRequestDetailPage: React.FC = () => {
   const [showParameters, setShowParameters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [wasRunning, setWasRunning] = useState(false);
 
   const handleCrawlEvent = (event: CrawlEvent) => {
     if (event.type === 'state') {
@@ -50,13 +51,11 @@ const CrawlRequestDetailPage: React.FC = () => {
 
   // Set up polling for status updates
   useEffect(() => {
-    let intervalId: any;
-
     const pollStatus = async () => {
       if (!requestId || !isSubscribed) return;
 
       try {
-        await crawlService.subscribeToStatus(
+        await crawlRequestApi.subscribeToStatus(
           requestId,
           handleCrawlEvent,
           () => setLoading(false)
@@ -67,18 +66,8 @@ const CrawlRequestDetailPage: React.FC = () => {
       }
     };
 
-    if (isSubscribed) {
-      // Poll every 5 seconds
-      intervalId = setInterval(pollStatus, 5000);
-      // Initial poll
-      pollStatus();
-    }
+    pollStatus();
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
   }, [requestId, isSubscribed]);
 
   useEffect(() => {
@@ -86,12 +75,13 @@ const CrawlRequestDetailPage: React.FC = () => {
       if (!requestId) return;
       try {
         setLoading(true);
-        const data = await activityLogsService.getCrawlRequest(requestId);
+        const data = await activityLogsApi.getCrawlRequest(requestId);
         setRequest(data);
 
         // Subscribe to status updates if the request is still running
         if (data.status === 'running') {
           setIsSubscribed(true);
+          setWasRunning(true);
         }
       } catch (error) {
         console.error('Error fetching crawl request:', error);
@@ -106,12 +96,13 @@ const CrawlRequestDetailPage: React.FC = () => {
   }, [requestId, navigate]);
 
   useEffect(() => {
+    if (!request || request.status === 'running' || wasRunning) return;
     const fetchResults = async () => {
       if (!request || request.status === 'running') return;
       try {
         setLoading(true);
         setCurrentPage(1);
-        const data = await activityLogsService.getCrawlResults(request.uuid, 1);
+        const data = await activityLogsApi.getCrawlResults(request.uuid, 1);
         setResults(data);
         setAllResults(data.results);
         setHasMore(!!data.next);
@@ -127,12 +118,12 @@ const CrawlRequestDetailPage: React.FC = () => {
   }, [request]);
 
   const loadMore = async () => {
-    if (!requestId || !results?.next || loadingMore) return;
+    if (!requestId || !results?.next || loadingMore ) return;
 
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      const data = await activityLogsService.getCrawlResults(requestId, nextPage);
+      const data = await activityLogsApi.getCrawlResults(requestId, nextPage);
       setResults(data);
       setAllResults(prev => [...prev, ...data.results]);
       setCurrentPage(nextPage);
@@ -149,7 +140,7 @@ const CrawlRequestDetailPage: React.FC = () => {
     if (!request) return;
 
     try {
-      await crawlService.cancelCrawl(request.uuid);
+      await crawlRequestApi.cancelCrawl(request.uuid);
       toast.success('Crawl cancelled successfully');
       setRequest(prev => prev ? { ...prev, status: 'cancelled' } : null);
     } catch (error) {
@@ -162,7 +153,7 @@ const CrawlRequestDetailPage: React.FC = () => {
     if (!requestId) return;
 
     try {
-      const blob = await activityLogsService.downloadResults(requestId);
+      const blob = await activityLogsApi.downloadResults(requestId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -367,11 +358,16 @@ const CrawlRequestDetailPage: React.FC = () => {
                             'Load More'
                           )}
                         </button>
-                      ) : results && results.count > 0 ? (
+                      ) : request.status !== 'running' && allResults && allResults.length > 0 ? (
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          All {results.count} results loaded
+                          All {allResults.length} results loaded
                         </p>
                       ) : null}
+                      {request.status === 'running' && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Crawling...
+                        </p>
+                      )}
                     </div>
                   </>
                 )}

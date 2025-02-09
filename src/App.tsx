@@ -8,6 +8,8 @@ import { TeamScopedComponent } from './components/shared/TeamScopedComponent';
 import { Toaster } from 'react-hot-toast';
 import { SettingsProvider } from './contexts/SettingsProvider';
 import { NotFoundPage } from './pages/NotFoundPage';
+import PlansPage from './pages/dashboard/PlansPage';
+import StripeCallbackPage from './pages/dashboard/StripeCallbackPage';
 
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const SignupPage = React.lazy(() => import('./pages/auth/SignupPage'));
@@ -77,8 +79,10 @@ const App: React.FC = () => {
                   <Route path="api-keys" element={<ApiKeysPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="profile" element={<ProfilePage />} />
+                  <Route path="plans" element={<PlansPage />} />
                 </Route>
               </Route>
+              <Route path="stripe-callback/" element={<StripeCallbackPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
