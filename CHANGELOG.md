@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enterprise mode flag in settings
 - New team properties (is_default)
 - Logo SVG files for dark and light modes
+- Version compatibility check with more robust parsing
 
 ### Changed
 - Improved API documentation with more detailed endpoint descriptions
@@ -20,11 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated usage charts with loading state and new grid layout
 - Migrated from `tailwind.config.js` to `tailwind.config.mjs`
 - Updated formatters and utility functions
+- Enhanced version compatibility check in SettingsProvider
 
 ### Refactored
 - Consolidated API service files
 - Simplified API call implementations
 - Improved error handling and response parsing
+- Added more flexible version parsing function
+
+### Fixed
+- Version compatibility check to handle various version string formats
 
 ## [0.2.0] - 2025-01-15
 
