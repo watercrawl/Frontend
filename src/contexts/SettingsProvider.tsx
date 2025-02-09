@@ -47,8 +47,18 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setIsCompatibleBackend(true);
             return;
         }
-        const [major, minor, patch]: string[] = settings.api_version.split('.');
-        const [majorBackend, minorBackend, patchBackend]: string[] = COMPATIBLE_BACKEND_VERSION.split('.');
+
+        const extractVersionNumbers = (text: string) => {
+            const match = text.match(/[vV](\d+)\.(\d+)\.(\d+)/);
+            if (match) {
+                return [match[1], match[2], match[3]];
+            }
+            return ["0", "0", "0"];
+        };
+
+        const [major, minor, patch]: string[] = COMPATIBLE_BACKEND_VERSION.split('.');
+        const [majorBackend, minorBackend, patchBackend]: string[] = extractVersionNumbers(settings.api_version);
+
         // it is not compatible less than 0.3.0
         setIsCompatibleBackend(
             (major == '*' || major == majorBackend) &&
