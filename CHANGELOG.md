@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-02-11
+
+### Removed
+- Removed Google Analytics environment variable from Dockerfile
+- Removed Google Analytics script replacement from docker-entrypoint.sh
+- Deleted package-lock.json
+
+### Changed
+- Updated `tsconfig.app.json` and `tsconfig.node.json` to enable incremental compilation
+- Minor cleanup of configuration files
+
+### Maintenance
+- Simplified build and deployment configurations
+
 ## [0.3.1] - 2025-02-11
 
 ### Added
@@ -152,3 +166,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.0]: https://github.com/watercrawl/frontend/releases/tag/0.2.0
 [0.3.0]: https://github.com/watercrawl/frontend/releases/tag/0.3.0
 [0.3.1]: https://github.com/watercrawl/frontend/releases/tag/0.3.1
+[0.3.2]: https://github.com/watercrawl/frontend/releases/tag/0.3.2

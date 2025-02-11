@@ -6,7 +6,6 @@ WORKDIR /app
 
 # Set the dummy API URL that will be replaced at runtime
 ENV VITE_API_URL=http://DUMMY_URL_FOR_REPLACE
-ENV VITE_GOOGLE_ANALYTICS_ID=DUMMY_GOOGLE_ANALYTICS_ID
 ENV VITE_VERSION=unknown
 
 # Copy package files
