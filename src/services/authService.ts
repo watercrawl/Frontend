@@ -83,6 +83,11 @@ export class AuthService {
     return this.refreshPromise;
   }
 
+  static logout(): void {
+    this.getInstance().removeToken();
+    window.location.href = '/';
+  }
+
   private getRefreshToken() {
     return localStorage.getItem('refreshToken');
   }

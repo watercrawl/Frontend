@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TeamProvider } from './contexts/TeamContext';
+import { UserProvider } from './contexts/UserContext';
 import { AuthLayout } from './layouts/AuthLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { TeamScopedComponent } from './components/shared/TeamScopedComponent';
@@ -10,6 +11,8 @@ import { SettingsProvider } from './contexts/SettingsProvider';
 import { NotFoundPage } from './pages/NotFoundPage';
 import PlansPage from './pages/dashboard/PlansPage';
 import StripeCallbackPage from './pages/dashboard/StripeCallbackPage';
+import { AuthGuard } from './components/auth/AuthGuard';
+import { CookieConsentProvider } from './cookie-consent/contexts/CookieConsentContext';
 
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const SignupPage = React.lazy(() => import('./pages/auth/SignupPage'));
@@ -54,41 +57,47 @@ const App: React.FC = () => {
           }}
         />
         <SettingsProvider>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Routes>
-              <Route element={<AuthLayout />}>
-                <Route path="/" element={<LoginPage />} />
-                <Route path="/register" element={<SignupPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-              </Route>
-              <Route element={
-                <TeamProvider>
-                  <TeamScopedComponent>
-                    <DashboardLayout />
-                  </TeamScopedComponent>
-                </TeamProvider>
-              }>
-                <Route path="/dashboard">
-                  <Route index element={<DashboardPage />} />
-                  <Route path="playground" element={<PlaygroundPage />} />
-                  <Route path="logs" element={<ActivityLogsPage />} />
-                  <Route path="logs/:requestId" element={<CrawlRequestDetailPage />} />
-                  <Route path="usage" element={<UsagePage />} />
-                  <Route path="api-keys" element={<ApiKeysPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="plans" element={<PlansPage />} />
+          <CookieConsentProvider>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Routes>
+                <Route element={<AuthLayout />}>
+                  <Route path="/" element={<LoginPage />} />
+                  <Route path="/register" element={<SignupPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                  <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
                 </Route>
-              </Route>
-              <Route path="stripe-callback/" element={<StripeCallbackPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Suspense>
+                <Route element={
+                  <AuthGuard>
+                    <UserProvider>
+                      <TeamProvider>
+                        <TeamScopedComponent>
+                          <DashboardLayout />
+                        </TeamScopedComponent>
+                      </TeamProvider>
+                    </UserProvider>
+                  </AuthGuard>
+                }>
+                  <Route path="/dashboard">
+                    <Route index element={<DashboardPage />} />
+                    <Route path="playground" element={<PlaygroundPage />} />
+                    <Route path="logs" element={<ActivityLogsPage />} />
+                    <Route path="logs/:requestId" element={<CrawlRequestDetailPage />} />
+                    <Route path="usage" element={<UsagePage />} />
+                    <Route path="api-keys" element={<ApiKeysPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
+                    <Route path="plans" element={<PlansPage />} />
+                  </Route>
+                </Route>
+                <Route path="stripe-callback/" element={<StripeCallbackPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
+          </CookieConsentProvider>
         </SettingsProvider>
       </Router>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 };
 

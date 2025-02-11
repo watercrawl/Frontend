@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { settingsApi } from '../services/api/settings';
 import { Settings } from '../types/settings';
 
-const COMPATIBLE_BACKEND_VERSION = '0.3.*';
+const COMPATIBLE_BACKEND_VERSION = '0.3.3';
 
 interface SettingsContextType {
     settings: Settings | null;
@@ -49,7 +49,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
 
         const extractVersionNumbers = (text: string) => {
-            const match = text.match(/[vV](\d+)\.(\d+)\.(\d+)/);
+            const match = text.match(/[vV]?(\d+)\.(\d+)\.(\d+)/);
             if (match) {
                 return [match[1], match[2], match[3]];
             }
@@ -62,8 +62,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // it is not compatible less than 0.3.0
         setIsCompatibleBackend(
             (major == '*' || major == majorBackend) &&
-            (minor == '*' || minor == minorBackend) &&
-            (patch == '*' || patch == patchBackend)
+            (minor == '*' || parseInt(minor) <= parseInt(minorBackend)) &&
+            (patch == '*' || parseInt(patch) <= parseInt(patchBackend))
         );
     }, [settings])
 

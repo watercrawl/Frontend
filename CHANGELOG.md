@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-02-11
+
+### Added
+- Newsletter subscription toggle in profile settings
+- Privacy and Terms confirmation modal
+- Google Analytics integration
+- New `UserContext` for managing user-related state
+- New `CookieConsentProvider` for managing cookie consent
+- New `Switch` component for toggle inputs
+- New `PrivacyTermsModal` component
+
+### Changed
+- Refactored `SettingsProvider` to improve version compatibility check
+- Updated `ProfileForm` to include newsletter subscription
+- Improved dashboard layout and responsiveness
+- Updated authentication flow with additional user context
+- Moved some type definitions to separate files for better organization
+
+### Fixed
+- Minor UI and UX improvements
+- Improved error handling in various components
+
+### Dependencies
+- Updated frontend and backend version compatibility
+
 ## [0.3.0] - 2025-02-09
 
 ### Added
@@ -126,3 +151,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/watercrawl/frontend/releases/tag/0.1.0
 [0.2.0]: https://github.com/watercrawl/frontend/releases/tag/0.2.0
 [0.3.0]: https://github.com/watercrawl/frontend/releases/tag/0.3.0
+[0.3.1]: https://github.com/watercrawl/frontend/releases/tag/0.3.1

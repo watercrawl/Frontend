@@ -1,4 +1,4 @@
-export interface Profile {
+export interface TeamProfile {
   uuid: string;
   email: string;
   full_name: string;
@@ -6,7 +6,7 @@ export interface Profile {
 
 export interface TeamMember {
   uuid: string;
-  user: Profile;
+  user: TeamProfile;
   is_owner: boolean;
 }
 

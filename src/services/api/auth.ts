@@ -1,6 +1,5 @@
 import api from './api';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../../types/auth';
-import { Profile } from '../../types/user';
 
 export const authApi = {
   async login(request: LoginRequest): Promise<AuthResponse> {
@@ -13,12 +12,6 @@ export const authApi = {
 
   async verifyEmail(token: string): Promise<AuthResponse> {
     return api.get(`/api/v1/user/auth/verify-email/${token}/`).then(({ data }) => data);
-  },
-
-  async getProfile(): Promise<Profile> {
-    return api.get<Profile>(
-      '/api/v1/user/profile/'
-    ).then(({ data }) => data);
   },
 
   async forgotPassword(email: string): Promise<void> {
@@ -35,6 +28,10 @@ export const authApi = {
 
   async resendVerificationEmail(email: string): Promise<void> {
     return api.post('/api/v1/user/auth/resend-verify-email/', { email });
+  },
+
+  async confirmPrivacyTerms(): Promise<void> {
+    return api.post('/api/v1/user/auth/confirm-privacy-terms/');
   },
 };
 

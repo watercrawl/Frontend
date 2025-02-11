@@ -2,8 +2,9 @@ import  { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import Loading from '../shared/Loading';
-import { Invitation, profileApi } from '../../services/api/profile';
+import { profileApi } from '../../services/api/profile';
 import { useTeam } from '../../contexts/TeamContext';
+import { Invitation } from '../../types/user';
 
 export function InvitationsList() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
