@@ -93,11 +93,11 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           <div className="flex items-baseline gap-x-2">
             {monthlyPriceBeforeDiscount && (
               <span className="text-sm font-semibold leading-6 text-gray-600 dark:text-gray-400 line-through">
-                ${monthlyPriceBeforeDiscount.toFixed(2)}
+                €{monthlyPriceBeforeDiscount.toFixed(2)}
               </span>
             )}
             <span className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-              ${monthlyPrice.toFixed(2)}
+              €{monthlyPrice.toFixed(2)}
             </span>
             <span className="text-sm font-semibold leading-6 text-gray-600 dark:text-gray-400">
               /Monthly
@@ -105,7 +105,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           </div>
           {plan.group === 'yearly' && (
             <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              ${Number(plan.price).toFixed(2)} billed yearly
+              €{Number(plan.price).toFixed(2)} billed yearly
             </div>
           )}
           {plan.name === 'Free' && (
