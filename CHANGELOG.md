@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-03-11
+
+### Added
+- GitHub Stars component in the sidebar with call-to-action to encourage repository stars
+
+### Fixed
+- Security vulnerabilities in dependencies:
+  - Updated axios to v1.8.2 to fix high severity SSRF vulnerability
+  - Updated vite to v6.2.1 to fix moderate severity development server issue
+
+### Changed
+- Docker workflow trigger conditions: now only building images on tag pushes instead of on every push to development and main branches
+
 ## [0.3.3] - 2025-02-12
 
 ### Changed
@@ -173,3 +186,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.3.0]: https://github.com/watercrawl/frontend/releases/tag/0.3.0
 [0.3.1]: https://github.com/watercrawl/frontend/releases/tag/0.3.1
 [0.3.2]: https://github.com/watercrawl/frontend/releases/tag/0.3.2
+[0.3.3]: https://github.com/watercrawl/frontend/releases/tag/0.3.3
+[0.3.4]: https://github.com/watercrawl/frontend/releases/tag/0.3.4
