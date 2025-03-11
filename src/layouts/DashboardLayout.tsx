@@ -24,6 +24,7 @@ import { useTeam } from '../contexts/TeamContext';
 import Loading from '../components/shared/Loading';
 import { useUser } from '../contexts/UserContext';
 import { PrivacyTermsModal } from '../components/shared/PrivacyTermsModal';
+import { GitHubStars } from '../components/shared/GitHubStars';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, end: true },
@@ -166,8 +167,27 @@ export const DashboardLayout = () => {
                 </ul>
               </nav>
               <div className="text-blue-200/60 text-xs text-center pb-2">
+                {/* GitHub Stars */}
+                <div className="mt-3 mb-3 px-2">
+                  <GitHubStars 
+                    owner="watercrawl" 
+                    repo="watercrawl" 
+                  />
+                </div>
                 Frontend Version: <b>{APP_VERSION}</b> <br />
                 Backend Version: <b>{settings?.api_version}</b>
+                {/* Copyright */}
+                <p className="text-xs leading-6 text-blue-200/60 pt-2">
+                  &copy;{new Date().getFullYear()} - Made with ❤️ by{' '}
+                  <a
+                    href="https://watercrawl.dev"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-200/60 hover:text-blue-100"
+                  >
+                    <b>WaterCrawl</b>
+                  </a>
+                </p>
               </div>
             </div>
           </div>
@@ -219,8 +239,17 @@ export const DashboardLayout = () => {
             </ul>
           </nav>
           <div className="text-blue-200/60 text-xs text-center pb-2">
+            {/* GitHub Stars */}
+            <div className="mt-3 mb-3 px-2">
+              <GitHubStars 
+                owner="watercrawl" 
+                repo="watercrawl" 
+              />
+            </div>
+            
             Frontend Version: <b>{APP_VERSION}</b> <br />
             Backend Version: <b>{settings?.api_version}</b>
+
             {/* Copyright */}
             <p className="text-xs leading-6 text-blue-200/60 pt-2">
               &copy;{new Date().getFullYear()} - Made with ❤️ by{' '}
