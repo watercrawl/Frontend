@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, ArrowDownTrayIcon, ChevronDownIcon, ChevronRightIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ChevronDownIcon, ChevronRightIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { CrawlRequest, CrawlResult, CrawlEvent } from '../../types/crawl';
 import { PaginatedResponse } from '../../types/common';
@@ -12,6 +12,7 @@ import { toast } from 'react-hot-toast';
 import { AnimatedProcessing } from '../../components/shared/AnimatedProcessing';
 import { formatDuration } from '../../utils/formatters';
 import { StatusBadge } from '../../components/shared/StatusBadge';
+import { DownloadFormatSelector } from '../../components/shared/DownloadFormatSelector';
 
 const CrawlRequestDetailPage: React.FC = () => {
   const { requestId } = useParams<{ requestId: string }>();
@@ -149,26 +150,6 @@ const CrawlRequestDetailPage: React.FC = () => {
     }
   };
 
-  const handleDownload = async () => {
-    if (!requestId) return;
-
-    try {
-      const blob = await activityLogsApi.downloadResults(requestId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `crawl-results-${requestId}.json`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success('Download started');
-    } catch (error) {
-      console.error('Error downloading results:', error);
-      toast.error('Failed to download results');
-    }
-  };
-
   const handleTryInPlayground = () => {
     if (!request) return;
     navigate('/dashboard/playground', { state: { request } });
@@ -224,13 +205,7 @@ const CrawlRequestDetailPage: React.FC = () => {
                 </div>
               </button>
             )}
-            <button
-              onClick={handleDownload}
-              className="inline-flex items-center px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 focus:outline-none focus:ring-offset-2 focus:ring-primary-500"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4 mr-1.5" />
-              Download
-            </button>
+            {requestId && <DownloadFormatSelector requestId={requestId} buttonWithText/>}
             <button
               onClick={handleTryInPlayground}
               className="inline-flex items-center px-3 py-1.5 text-sm border border-primary-300 dark:border-primary-600 rounded-md shadow-sm font-medium text-primary-700 dark:text-primary-200 bg-white dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 focus:outline-none focus:ring-primary-500 focus:ring-offset-2 transition-colors"

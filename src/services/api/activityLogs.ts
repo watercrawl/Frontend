@@ -3,9 +3,9 @@ import { CrawlRequest, CrawlResult } from '../../types/crawl';
 import api from './api';
 
 export const activityLogsApi = {
-  async listCrawlRequests(page: number): Promise<PaginatedResponse<CrawlRequest>> {
+  async listCrawlRequests(page: number, status?: string): Promise<PaginatedResponse<CrawlRequest>> {
     return api.get<PaginatedResponse<CrawlRequest>>(`/api/v1/core/crawl-requests/`, {
-      params: { page }
+      params: { page, status, page_size: 10 }
     }).then(({ data }) => data);
   },
 
@@ -20,8 +20,9 @@ export const activityLogsApi = {
     ).then(({ data }) => data);
   },
 
-  async downloadResults(requestId: string): Promise<Blob> {
+  async downloadResults(requestId: string, format: 'json' | 'markdown'): Promise<Blob> {
     const response = await api.get(`/api/v1/core/crawl-requests/${requestId}/download/`, {
+      params: { output_format: format },
       responseType: 'blob'
     });
     return response.data;
